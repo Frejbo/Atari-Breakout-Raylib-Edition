@@ -104,14 +104,11 @@ while (!Raylib.WindowShouldClose()) {
     Raylib.BeginDrawing();
     Raylib.ClearBackground(Color.DARKGRAY);
 
-    Color white = new Color(255, 255, 255, 255);
-    Color red = new Color(255, 0, 0, 255);
+    foreach (Rectangle block in blocks) {Raylib.DrawRectangleRec(block, Color.WHITE);}
 
-    foreach (Rectangle block in blocks) {Raylib.DrawRectangleRec(block, white);}
-
-    Raylib.DrawRectangleRec(platta, white);
-    Raylib.DrawTexture(long_platta, (int)platta.x, (int)platta.y, white);
+    // Raylib.DrawRectangleRec(platta, Color.WHITE);
+    Raylib.DrawTexture(long_platta, (int)platta.x, (int)platta.y, Color.WHITE);
     // Raylib.DrawCircleV(ball, 16, white);
-    Raylib.DrawTexture(bollBild, (int)ball.X-bollBild.width/2, (int)ball.Y-bollBild.height/2, white);
+    Raylib.DrawTexture(bollBild, (int)ball.X-bollBild.width/2, (int)ball.Y-bollBild.height/2, Color.WHITE);
     Raylib.EndDrawing();
 }
