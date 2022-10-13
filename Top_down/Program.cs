@@ -5,7 +5,7 @@ int speed = 10;
 
 
 Raylib.InitWindow(1024, 1024, "TopDownGame");
-Raylib.SetTargetFPS(30);
+Raylib.SetTargetFPS(60);
 
 Texture2D bollBild = Raylib.LoadTexture("ball.png");
 Rectangle platta = new Rectangle(412, 900, 200, 30);
@@ -16,7 +16,7 @@ List<Rectangle> blocks = new List<Rectangle>();
 Vector2 block_size = new Vector2(40, 20);
 int blocks_gap = 10;
 
-for (int x = 1; x <= 5; x++) {
+for (int x = 1; x <= 19; x++) {
     for (int y = 1; y <= 5; y++) {
         blocks.Add(new Rectangle((block_size.X + blocks_gap) * x, (block_size.Y + blocks_gap) * y, block_size.X, block_size.Y));
     }
@@ -56,23 +56,23 @@ while (!Raylib.WindowShouldClose()) {
         
             // bounce
             
-            Console.WriteLine("\n\n\n");
-            Console.WriteLine(block.x);
-            Console.WriteLine(ball.X);
+            // Console.WriteLine("\n\n\n");
+            // Console.WriteLine(block.x);
+            // Console.WriteLine(ball.X);
             // Console.WriteLine(ball_velocity);
-            if (ball.X >= (block.x + (block_size.X) + bollBild.width)) { // träffa ?
-                Console.WriteLine("Träffade a");
-                ball_velocity.X -= (ball_velocity.X*2);
-            } else if (ball.X <= block.x + (block_size.X/2) + (bollBild.width/2)) { // träffar ?
-                Console.WriteLine("Träffade b");
-                ball_velocity.X -= (ball_velocity.X*2);
-            } else if (ball.Y >= block.y + (block_size.Y/2) + (bollBild.height/2)) {
-                Console.WriteLine("Träffade c");
-                ball_velocity.Y -= (ball_velocity.Y*2);
-            } else if (ball.Y <= block.y + (block_size.Y/2) + (bollBild.height/2)) {
-                Console.WriteLine("Träffade d");
-                ball_velocity.Y -= (ball_velocity.Y*2);
-            }
+            // if (ball.X >= (block.x + (block_size.X) + bollBild.width)) { // träffa ?
+            //     Console.WriteLine("Träffade a");
+            //     ball_velocity.X -= (ball_velocity.X*2);
+            // } else if (ball.X <= block.x + (block_size.X/2) + (bollBild.width/2)) { // träffar ?
+            //     Console.WriteLine("Träffade b");
+            //     ball_velocity.X -= (ball_velocity.X*2);
+            // } else if (ball.Y >= block.y + (block_size.Y/2) + (bollBild.height/2)) {
+            //     Console.WriteLine("Träffade c");
+            //     ball_velocity.Y -= (ball_velocity.Y*2);
+            // } else if (ball.Y <= block.y + (block_size.Y/2) + (bollBild.height/2)) {
+            //     Console.WriteLine("Träffade d");
+            //     ball_velocity.Y -= (ball_velocity.Y*2);
+            // }
 
             // Console.WriteLine(new Vector2(ball.X, ball.Y) - prev_ball_pos);
 
