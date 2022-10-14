@@ -1,8 +1,12 @@
 ﻿using Raylib_cs;
 using System.Numerics;
 
-int speed = 10;
-int health = 3;
+int speed = 7;
+Vector2 ball_velocity = new Vector2(0, 1);
+float ball_speed = 7;
+
+float ball_acceleration = (float)0.1; // ball_speed / ball_acceleration måste vara möjligt.
+float actual_ball_speed = 1; // Ändra inte den här!
 
 Vector2 screen_size = new Vector2(1280, 720);
 Rectangle screen_rect = new Rectangle(0, 0, screen_size.X, screen_size.Y);
@@ -16,10 +20,10 @@ Texture2D long_platta = Raylib.LoadTexture("Assets/Long Plate.png");
 Texture2D game_over_screen = Raylib.LoadTexture("Assets/Backgrounds/Game over.png");
 Texture2D success_screen = Raylib.LoadTexture("Assets/Backgrounds/Success.png");
 
-List<Texture2D> life = new List<Texture2D>();
-life.Add(Raylib.LoadTexture("Assets/Lifebar/life2.png"));
-life.Add(Raylib.LoadTexture("Assets/Lifebar/life1.png"));
-life.Add(Raylib.LoadTexture("Assets/Lifebar/life0.png"));
+List<Texture2D> health = new List<Texture2D>();
+health.Add(Raylib.LoadTexture("Assets/Lifebar/life2.png"));
+health.Add(Raylib.LoadTexture("Assets/Lifebar/life1.png"));
+health.Add(Raylib.LoadTexture("Assets/Lifebar/life0.png"));
 
 Vector2 platta_size = new Vector2(long_platta.width, long_platta.height);
 Rectangle platta = new Rectangle((screen_size.X/2)-platta_size.X/2, screen_size.Y - (int)(screen_size.Y/10), platta_size.X, platta_size.Y);
@@ -31,34 +35,37 @@ List<Rectangle> blocks = new List<Rectangle>();
 Vector2 block_size = new Vector2(40, 20);
 int blocks_gap = 10;
 
-for (int x = 19; x <= 19; x++) {
-    for (int y = 5; y <= 5; y++) {
+for (int x = 1; x <= 19; x++) {
+    for (int y = 1; y <= 5; y++) {
         blocks.Add(new Rectangle((block_size.X + blocks_gap) * x, (block_size.Y + blocks_gap) * y, block_size.X, block_size.Y));
     }
 }
 
-Vector2 ball_velocity = new Vector2(0, 1);
-const int ball_speed = 7;
 
 while (!Raylib.WindowShouldClose()) {
-    if (life.Count > 0 && blocks.Count > 0) {
+    if (health.Count > 0 && blocks.Count > 0) {
         bool bounced_x = false;
         bool bounced_y = false;
 
-        if (Raylib.IsKeyDown(KeyboardKey.KEY_A)) {
+        if (Raylib.IsKeyDown(KeyboardKey.KEY_A) || Raylib.IsKeyDown(KeyboardKey.KEY_LEFT)) {
             if (platta.x < 1) {
                 platta.x = 0;
             } else {
                 platta.x -= speed;
             }
         }
-        if (Raylib.IsKeyDown(KeyboardKey.KEY_D)) {
+        if (Raylib.IsKeyDown(KeyboardKey.KEY_D) || Raylib.IsKeyDown(KeyboardKey.KEY_RIGHT)) {
             if (platta.x + platta_size.X >= screen_size.X) {
                 platta.x = screen_size.X - platta_size.X;
             } else {
                 platta.x += speed;
             }
         }
+
+
+        // accelerera om bollhastigheten är under den angivna
+        if (actual_ball_speed < ball_speed) {actual_ball_speed += ball_acceleration;}
+        if (actual_ball_speed > ball_speed) {actual_ball_speed = ball_speed;}
 
 
         // ball
@@ -70,11 +77,12 @@ while (!Raylib.WindowShouldClose()) {
         } else if (ball.Y < 1) {
             ball_velocity.Y -= (ball_velocity.Y*2);
         } else if (ball.Y > (screen_size.Y - bollBild.height/2)) { // hits bottom
-            life.RemoveAt(0);
-            if (life.Count == 0) {continue;}
+            health.RemoveAt(0);
+            if (health.Count == 0) {continue;}
             ball.X = screen_size.X/2;
             ball.Y = screen_size.Y/2;
             ball_velocity = new Vector2(0, 1);
+            actual_ball_speed = 1;
         } else if (Raylib.CheckCollisionCircleRec(ball, bollBild.width/2, platta)) { // träffar platta
             ball_velocity.Y -= (ball_velocity.Y*2);
             ball_velocity.X = (ball.X - platta.x - (platta_size.X/2))/platta_size.X; // skickar bollens x velocity beroende på var man träffar plattan.
@@ -104,18 +112,19 @@ while (!Raylib.WindowShouldClose()) {
                     if (!bounced_x) {ball_velocity.X = -ball_velocity.X;}
                     bounced_x = true;
                 }
+                ball_speed += (float)0.1;
             }
         }
         foreach (Rectangle block in remove_blocks) {blocks.Remove(block);}
 
         
         // calculating direction of ball
-        ball.X += ball_velocity.X * ball_speed;
-        ball.Y += ball_velocity.Y * ball_speed;
+        ball.X += ball_velocity.X * actual_ball_speed;
+        ball.Y += ball_velocity.Y * actual_ball_speed;
 
         draw_game();
     }
-    else if (life.Count == 0) // Death
+    else if (health.Count == 0) // Death
     {
 
     Raylib.BeginDrawing();
@@ -153,7 +162,7 @@ void draw_game() {
     // Raylib.DrawCircleV(ball, 16, white);
     Raylib.DrawTexture(bollBild, (int)ball.X-bollBild.width/2, (int)ball.Y-bollBild.height/2, Color.WHITE);
 
-    Raylib.DrawTexture(life[0], ((int)screen_size.X - life[0].width) - 20, 20, new Color(255, 255, 255, 200));
+    Raylib.DrawTexture(health[0], ((int)screen_size.X - health[0].width) - 20, 20, new Color(255, 255, 255, 200));
 
     Raylib.EndDrawing();
 }
