@@ -3,7 +3,8 @@ using System.Numerics;
 
 int speed = 7;
 Vector2 ball_velocity = new Vector2(0, 1);
-float ball_speed = 7;
+const int ball_speed_base = 7;
+float ball_speed = ball_speed_base;
 
 float ball_acceleration = (float)0.1; // ball_speed / ball_acceleration måste vara möjligt.
 float actual_ball_speed = 1; // Ändra inte den här!
@@ -42,16 +43,20 @@ Vector2 ball = new Vector2(screen_size.X/2, screen_size.Y/2);
 
 List<Texture2D> user_blocks_texture = new List<Texture2D>();
 List<Rectangle> blocks = new List<Rectangle>();
-Vector2 block_size = new Vector2(40, 20);
-int blocks_gap = 10;
+int blocks_gap = 12;
+Vector2 block_size = new Vector2((float)(screen_size.X/11-blocks_gap), ((screen_size.X / 11 - blocks_gap) / 150) * 60); // Blockens res är 150x60.
+System.Console.WriteLine(block_size);
+// screen_size.X/10-10;
+
+
 
 Random rand = new Random();
 
-for (int x = 1; x <= 19; x++) {
-    for (int y = 1; y <= 5; y++) {
-        if (rand.Next(0, 2) == 1) {
+for (int x = 0; x < 10; x++) {
+    for (int y = 0; y < 5; y++) {
+        if (rand.Next(0, 2) >= 0) { // Ju högre det andra värdet i Next är desto högre chans att block spawnar. 1=100%, 2=50%
             // Add block
-            blocks.Add(new Rectangle((block_size.X + blocks_gap) * x, (block_size.Y + blocks_gap) * y, block_size.X, block_size.Y));
+            blocks.Add(new Rectangle((((block_size.X + blocks_gap)*x)+block_size.X/2)+blocks_gap, ((block_size.Y + blocks_gap) * y)+blocks_gap, block_size.X, block_size.Y));
             user_blocks_texture.Add(block_texturer[rand.Next(0, block_texturer.Count)]);
         }
     }
@@ -98,6 +103,7 @@ while (!Raylib.WindowShouldClose()) {
             ball.Y = screen_size.Y/2;
             ball_velocity = new Vector2(0, 1);
             actual_ball_speed = 1;
+            ball_speed = ball_speed_base; // !! ball speeds need rework
         } else if (Raylib.CheckCollisionCircleRec(ball, bollBild.width/2, platta)) { // träffar platta
             if (ball.Y > platta.y-(bollBild.height/2)) {
                 ball.Y = platta.y-(bollBild.height/2); // sets the boll on top om den är under plattan tpy
@@ -182,7 +188,6 @@ void draw_game() {
     foreach (Rectangle block in blocks) { // Ritar alla block
         Texture2D block_textur = block_texturer[rand.Next(0, block_texturer.Count)];
 
-        Raylib.DrawRectangleRec(block, Color.WHITE);
         Raylib.DrawTexturePro(user_blocks_texture[index], new Rectangle(0, 0, block_textur.width, block_textur.height), new Rectangle(block.x, block.y, block.width, block.height), new Vector2(0, 0), 0, Color.WHITE);
         index++;
     }
