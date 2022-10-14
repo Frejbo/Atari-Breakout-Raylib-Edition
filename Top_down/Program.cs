@@ -20,6 +20,16 @@ Texture2D long_platta = Raylib.LoadTexture("Assets/Long Plate.png");
 Texture2D game_over_screen = Raylib.LoadTexture("Assets/Backgrounds/Game over.png");
 Texture2D success_screen = Raylib.LoadTexture("Assets/Backgrounds/Success.png");
 
+List<Texture2D> block_texturer = new List<Texture2D>();
+block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Brown Block.png"));
+block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Dark Blue Block.png"));
+block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Green Block.png"));
+block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Orange Block.png"));
+block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Pink Block.png"));
+block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Red Block.png"));
+block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Turquise Block.png"));
+block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Yellow Block.png"));
+
 List<Texture2D> health = new List<Texture2D>();
 health.Add(Raylib.LoadTexture("Assets/Lifebar/life2.png"));
 health.Add(Raylib.LoadTexture("Assets/Lifebar/life1.png"));
@@ -30,14 +40,20 @@ Rectangle platta = new Rectangle((screen_size.X/2)-platta_size.X/2, screen_size.
 
 Vector2 ball = new Vector2(screen_size.X/2, screen_size.Y/2);
 
-
+List<Texture2D> user_blocks_texture = new List<Texture2D>();
 List<Rectangle> blocks = new List<Rectangle>();
 Vector2 block_size = new Vector2(40, 20);
 int blocks_gap = 10;
 
+Random rand = new Random();
+
 for (int x = 1; x <= 19; x++) {
     for (int y = 1; y <= 5; y++) {
-        blocks.Add(new Rectangle((block_size.X + blocks_gap) * x, (block_size.Y + blocks_gap) * y, block_size.X, block_size.Y));
+        if (rand.Next(0, 2) == 1) {
+            // Add block
+            blocks.Add(new Rectangle((block_size.X + blocks_gap) * x, (block_size.Y + blocks_gap) * y, block_size.X, block_size.Y));
+            user_blocks_texture.Add(block_texturer[rand.Next(0, block_texturer.Count)]);
+        }
     }
 }
 
@@ -67,7 +83,6 @@ while (!Raylib.WindowShouldClose()) {
         if (actual_ball_speed < ball_speed) {actual_ball_speed += ball_acceleration;}
         if (actual_ball_speed > ball_speed) {actual_ball_speed = ball_speed;}
 
-
         // ball
         // studsa på kanter och hörn
         if ((ball.X < 1 || ball.X > (screen_size.X - bollBild.width)) && (ball.Y < 1 || ball.Y > (screen_size.Y - bollBild.height))) {
@@ -84,17 +99,21 @@ while (!Raylib.WindowShouldClose()) {
             ball_velocity = new Vector2(0, 1);
             actual_ball_speed = 1;
         } else if (Raylib.CheckCollisionCircleRec(ball, bollBild.width/2, platta)) { // träffar platta
+            if (ball.Y > platta.y-(bollBild.height/2)) {
+                ball.Y = platta.y-(bollBild.height/2); // sets the boll on top om den är under plattan tpy
+            }
             ball_velocity.Y -= (ball_velocity.Y*2);
             ball_velocity.X = (ball.X - platta.x - (platta_size.X/2))/platta_size.X; // skickar bollens x velocity beroende på var man träffar plattan.
         }
 
 
         // studsa på block
-        List<Rectangle> remove_blocks = new List<Rectangle>();
+        List<int> remove_blocks = new List<int>();
+        int index = 0;
         foreach (Rectangle block in blocks) {
             bool colliding = Raylib.CheckCollisionCircleRec(ball, bollBild.width/2, block);
             if (colliding) {
-                remove_blocks.Add(block);
+                remove_blocks.Add(index);
                 
                 // bounce ball
                 Rectangle over_check = new Rectangle(block.x+(bollBild.width/4), block.y-bollBild.height, block_size.X-(bollBild.width/2), 1);
@@ -114,8 +133,12 @@ while (!Raylib.WindowShouldClose()) {
                 }
                 ball_speed += (float)0.1;
             }
+            index++;
         }
-        foreach (Rectangle block in remove_blocks) {blocks.Remove(block);}
+        foreach (int block in remove_blocks) {
+            blocks.RemoveAt(block);
+            user_blocks_texture.RemoveAt(block);
+        }
 
         
         // calculating direction of ball
@@ -155,7 +178,14 @@ void draw_game() {
     Raylib.BeginDrawing();
     Raylib.ClearBackground(Color.DARKGRAY);
 
-    foreach (Rectangle block in blocks) {Raylib.DrawRectangleRec(block, Color.WHITE);}
+    int index = 0;
+    foreach (Rectangle block in blocks) { // Ritar alla block
+        Texture2D block_textur = block_texturer[rand.Next(0, block_texturer.Count)];
+
+        Raylib.DrawRectangleRec(block, Color.WHITE);
+        Raylib.DrawTexturePro(user_blocks_texture[index], new Rectangle(0, 0, block_textur.width, block_textur.height), new Rectangle(block.x, block.y, block.width, block.height), new Vector2(0, 0), 0, Color.WHITE);
+        index++;
+    }
 
     // Raylib.DrawRectangleRec(platta, Color.WHITE);
     Raylib.DrawTexture(long_platta, (int)platta.x, (int)platta.y, Color.WHITE);
