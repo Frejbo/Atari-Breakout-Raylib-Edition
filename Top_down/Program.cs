@@ -2,7 +2,7 @@
 using System.Numerics;
 
 int speed = 7;
-Vector2 ball_velocity = new Vector2(0, 1);
+Vector2 ball_velocity = new Vector2(0, -1);
 const int ball_speed_base = 7;
 float ball_speed = ball_speed_base;
 
@@ -12,7 +12,7 @@ float actual_ball_speed = 1; // Ändra inte den här!
 Vector2 screen_size = new Vector2(1280, 720);
 Rectangle screen_rect = new Rectangle(0, 0, screen_size.X, screen_size.Y);
 Raylib.InitWindow((int)screen_size.X, (int)screen_size.Y, "Atari Breakout");
-Raylib.SetTargetFPS(60);
+Raylib.SetTargetFPS(10);
 
 Texture2D bollBild = Raylib.LoadTexture("Assets/Ball.png");
 Texture2D short_platta = Raylib.LoadTexture("Assets/Short Plate.png");
@@ -45,7 +45,6 @@ List<Texture2D> user_blocks_texture = new List<Texture2D>();
 List<Rectangle> blocks = new List<Rectangle>();
 int blocks_gap = 12;
 Vector2 block_size = new Vector2((float)(screen_size.X/11-blocks_gap), ((screen_size.X / 11 - blocks_gap) / 150) * 60); // Blockens res är 150x60.
-System.Console.WriteLine(block_size);
 // screen_size.X/10-10;
 
 
@@ -58,6 +57,7 @@ for (int x = 0; x < 10; x++) {
             // Add block
             blocks.Add(new Rectangle((((block_size.X + blocks_gap)*x)+block_size.X/2)+blocks_gap, ((block_size.Y + blocks_gap) * y)+blocks_gap, block_size.X, block_size.Y));
             user_blocks_texture.Add(block_texturer[rand.Next(0, block_texturer.Count)]);
+            System.Console.WriteLine(((block_size.Y + blocks_gap) * y)+blocks_gap);
         }
     }
 }
@@ -119,6 +119,10 @@ while (!Raylib.WindowShouldClose()) {
         foreach (Rectangle block in blocks) {
             bool colliding = Raylib.CheckCollisionCircleRec(ball, bollBild.width/2, block);
             if (colliding) {
+                System.Console.WriteLine("");
+                System.Console.WriteLine(colliding);
+                System.Console.WriteLine(block);
+
                 remove_blocks.Add(index);
                 
                 // bounce ball
@@ -126,15 +130,19 @@ while (!Raylib.WindowShouldClose()) {
                 Rectangle below_check = new Rectangle(block.x+(bollBild.width/4), block.y+block_size.Y+bollBild.height, block_size.X-(bollBild.width/2), 1);
                 if (Raylib.CheckCollisionCircleRec(ball, bollBild.height, over_check)) { // Bollen är över blocket
                     if (!bounced_y) {ball_velocity.Y = -ball_velocity.Y;}
+                    System.Console.WriteLine("Över");
                     bounced_y = true;
                 } else if (Raylib.CheckCollisionCircleRec(ball, bollBild.height, below_check)) { // Bollen är under blocket
                     if (!bounced_y) {ball_velocity.Y = -ball_velocity.Y;}
+                    System.Console.WriteLine("Under");
                     bounced_y = true;
                 } else if (block.x <= ball.X) { // Bollen är till höger om blocket
                     if (!bounced_x) {ball_velocity.X = -ball_velocity.X;}
+                    System.Console.WriteLine("Höger");
                     bounced_x = true;
                 } else if (block.x >= ball.X) { // Bollen är till vänster om blocket
                     if (!bounced_x) {ball_velocity.X = -ball_velocity.X;}
+                    System.Console.WriteLine("Vänster");
                     bounced_x = true;
                 }
                 ball_speed += (float)0.1;
