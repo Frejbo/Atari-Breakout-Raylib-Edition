@@ -51,13 +51,14 @@ Vector2 block_size = new Vector2((float)(screen_size.X/11-blocks_gap), ((screen_
 
 Random rand = new Random();
 
-for (int x = 0; x < 10; x++) {
-    for (int y = 0; y < 5; y++) {
+for (int y = 0; y < 5; y++) {
+    for (int x = 0; x < 10; x++) {
         if (rand.Next(0, 2) >= 0) { // Ju högre det andra värdet i Next är desto högre chans att block spawnar. 1=100%, 2=50%
             // Add block
             blocks.Add(new Rectangle((((block_size.X + blocks_gap)*x)+block_size.X/2)+blocks_gap, ((block_size.Y + blocks_gap) * y)+blocks_gap, block_size.X, block_size.Y));
             user_blocks_texture.Add(block_texturer[rand.Next(0, block_texturer.Count)]);
             System.Console.WriteLine(((block_size.Y + blocks_gap) * y)+blocks_gap);
+            Console.WriteLine(blocks[blocks.Count-1]);
         }
     }
 }
@@ -122,6 +123,7 @@ while (!Raylib.WindowShouldClose()) {
                 System.Console.WriteLine("");
                 System.Console.WriteLine(colliding);
                 System.Console.WriteLine(block);
+                Console.WriteLine(ball);
 
                 remove_blocks.Add(index);
                 
@@ -196,7 +198,8 @@ void draw_game() {
     foreach (Rectangle block in blocks) { // Ritar alla block
         Texture2D block_textur = block_texturer[rand.Next(0, block_texturer.Count)];
 
-        Raylib.DrawTexturePro(user_blocks_texture[index], new Rectangle(0, 0, block_textur.width, block_textur.height), new Rectangle(block.x, block.y, block.width, block.height), new Vector2(0, 0), 0, Color.WHITE);
+        Raylib.DrawRectangleRec(block, Color.WHITE);
+        // Raylib.DrawTexturePro(user_blocks_texture[index], new Rectangle(0, 0, block_textur.width, block_textur.height), new Rectangle(block.x, block.y, block.width, block.height), new Vector2(0, 0), 0, Color.WHITE);
         index++;
     }
 
