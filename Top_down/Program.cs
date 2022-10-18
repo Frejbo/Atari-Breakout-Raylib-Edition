@@ -1,9 +1,9 @@
 ﻿using Raylib_cs;
 using System.Numerics;
 
-int speed = 7;
+int speed = 10;
 Vector2 ball_velocity = new Vector2(0, -1);
-const int ball_speed_base = 7;
+const int ball_speed_base = 5;
 float ball_speed = ball_speed_base;
 
 float ball_acceleration = (float)0.1; // ball_speed / ball_acceleration måste vara möjligt.
@@ -107,7 +107,7 @@ while (!Raylib.WindowShouldClose()) {
                 ball.Y = platta.y-(bollBild.height/2); // sets the boll on top om den är under plattan tpy
             }
             ball_velocity.Y -= (ball_velocity.Y*2);
-            ball_velocity.X = (ball.X - platta.x - (platta_size.X/2))/platta_size.X; // skickar bollens x velocity beroende på var man träffar plattan.
+            ball_velocity.X = ball_velocity.X + ((ball.X - platta.x - (platta_size.X/2))/platta_size.X); // skickar bollens x velocity beroende på var man träffar plattan.
         }
 
 
