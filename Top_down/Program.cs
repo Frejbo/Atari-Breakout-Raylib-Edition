@@ -12,7 +12,7 @@ float actual_ball_speed = 1; // Ändra inte den här!
 Vector2 screen_size = new Vector2(1280, 720);
 Rectangle screen_rect = new Rectangle(0, 0, screen_size.X, screen_size.Y);
 Raylib.InitWindow((int)screen_size.X, (int)screen_size.Y, "Atari Breakout");
-Raylib.SetTargetFPS(10);
+Raylib.SetTargetFPS(60);
 
 Texture2D bollBild = Raylib.LoadTexture("Assets/Ball.png");
 Texture2D short_platta = Raylib.LoadTexture("Assets/Short Plate.png");
@@ -45,20 +45,17 @@ List<Texture2D> user_blocks_texture = new List<Texture2D>();
 List<Rectangle> blocks = new List<Rectangle>();
 int blocks_gap = 12;
 Vector2 block_size = new Vector2((float)(screen_size.X/11-blocks_gap), ((screen_size.X / 11 - blocks_gap) / 150) * 60); // Blockens res är 150x60.
-// screen_size.X/10-10;
-
 
 
 Random rand = new Random();
 
+
 for (int y = 0; y < 5; y++) {
     for (int x = 0; x < 10; x++) {
-        if (rand.Next(0, 2) >= 0) { // Ju högre det andra värdet i Next är desto högre chans att block spawnar. 1=100%, 2=50%
+        if (rand.Next(0, 1) >= 0) { // Ju högre det andra värdet i Next är desto högre chans att block spawnar. 1=100%, 2=50%
             // Add block
             blocks.Add(new Rectangle((((block_size.X + blocks_gap)*x)+block_size.X/2)+blocks_gap, ((block_size.Y + blocks_gap) * y)+blocks_gap, block_size.X, block_size.Y));
             user_blocks_texture.Add(block_texturer[rand.Next(0, block_texturer.Count)]);
-            System.Console.WriteLine(((block_size.Y + blocks_gap) * y)+blocks_gap);
-            Console.WriteLine(blocks[blocks.Count-1]);
         }
     }
 }
@@ -120,37 +117,30 @@ while (!Raylib.WindowShouldClose()) {
         foreach (Rectangle block in blocks) {
             bool colliding = Raylib.CheckCollisionCircleRec(ball, bollBild.width/2, block);
             if (colliding) {
-                System.Console.WriteLine("");
-                System.Console.WriteLine(colliding);
-                System.Console.WriteLine(block);
-                Console.WriteLine(ball);
-
-                remove_blocks.Add(index);
-                
+                remove_blocks.Add(index);                
                 // bounce ball
                 Rectangle over_check = new Rectangle(block.x+(bollBild.width/4), block.y-bollBild.height, block_size.X-(bollBild.width/2), 1);
                 Rectangle below_check = new Rectangle(block.x+(bollBild.width/4), block.y+block_size.Y+bollBild.height, block_size.X-(bollBild.width/2), 1);
                 if (Raylib.CheckCollisionCircleRec(ball, bollBild.height, over_check)) { // Bollen är över blocket
                     if (!bounced_y) {ball_velocity.Y = -ball_velocity.Y;}
-                    System.Console.WriteLine("Över");
                     bounced_y = true;
                 } else if (Raylib.CheckCollisionCircleRec(ball, bollBild.height, below_check)) { // Bollen är under blocket
                     if (!bounced_y) {ball_velocity.Y = -ball_velocity.Y;}
-                    System.Console.WriteLine("Under");
                     bounced_y = true;
                 } else if (block.x <= ball.X) { // Bollen är till höger om blocket
                     if (!bounced_x) {ball_velocity.X = -ball_velocity.X;}
-                    System.Console.WriteLine("Höger");
                     bounced_x = true;
                 } else if (block.x >= ball.X) { // Bollen är till vänster om blocket
                     if (!bounced_x) {ball_velocity.X = -ball_velocity.X;}
-                    System.Console.WriteLine("Vänster");
                     bounced_x = true;
                 }
                 ball_speed += (float)0.1;
             }
             index++;
         }
+
+        
+        remove_blocks.Reverse();
         foreach (int block in remove_blocks) {
             blocks.RemoveAt(block);
             user_blocks_texture.RemoveAt(block);
@@ -198,8 +188,8 @@ void draw_game() {
     foreach (Rectangle block in blocks) { // Ritar alla block
         Texture2D block_textur = block_texturer[rand.Next(0, block_texturer.Count)];
 
-        Raylib.DrawRectangleRec(block, Color.WHITE);
-        // Raylib.DrawTexturePro(user_blocks_texture[index], new Rectangle(0, 0, block_textur.width, block_textur.height), new Rectangle(block.x, block.y, block.width, block.height), new Vector2(0, 0), 0, Color.WHITE);
+        // Raylib.DrawRectangleRec(block, Color.WHITE);
+        Raylib.DrawTexturePro(user_blocks_texture[index], new Rectangle(0, 0, block_textur.width, block_textur.height), new Rectangle(block.x, block.y, block.width, block.height), new Vector2(0, 0), 0, Color.WHITE);
         index++;
     }
 
