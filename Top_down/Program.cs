@@ -272,9 +272,26 @@ class Platta {
         size_change_timer += 60*10; // En powerup varar i 10 sekunder
     }
     public void tick_platta_size() {
-        if (size > 1) {texture = long_platta;}
-        if (size == 1) {texture = medium_platta;}
-        if (size < 1) {texture = short_platta;}
+        if (size > 1) {
+            if (texture.width == medium_platta.width) {
+                position.X -= (long_platta.width-medium_platta.width)/2;
+            }
+            texture = long_platta;
+        }
+        if (size == 1) {
+            if (texture.width == short_platta.width) {
+                position.X -= (medium_platta.width-short_platta.width)/2;
+            } else if (texture.width == long_platta.width) {
+                position.X += (long_platta.width-medium_platta.width)/2;
+            }
+            texture = medium_platta;
+        }
+        if (size < 1) {
+            if (texture.width == medium_platta.width) {
+                position.X += (medium_platta.width-short_platta.width)/2;
+            }
+            texture = short_platta;
+        }
 
 
         if (Raylib.IsKeyDown(KeyboardKey.KEY_A) || Raylib.IsKeyDown(KeyboardKey.KEY_LEFT)) {
