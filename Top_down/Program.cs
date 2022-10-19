@@ -215,7 +215,7 @@ void draw_game() {
 
         // Raylib.DrawRectangleRec(block, Color.WHITE);
         Raylib.DrawTexturePro(user_blocks_texture[index], new Rectangle(0, 0, block_textur.width, block_textur.height), new Rectangle(block.x, block.y, block.width, block.height), new Vector2(0, 0), 0, Color.WHITE);
-        Raylib.DrawText(index.ToString(), (int)block.x, (int)block.y, 32, Color.WHITE);
+        // Raylib.DrawText(index.ToString(), (int)block.x, (int)block.y, 32, Color.WHITE);
         index++;
     }
 
@@ -227,6 +227,7 @@ void draw_game() {
 
 
     // Raylib.DrawRectangleRec(platta, Color.WHITE);
+    Console.WriteLine(platta.color_tint);
     Raylib.DrawTexture(platta.texture, (int)platta.position.X, (int)platta.position.Y, platta.color_tint);
     // Raylib.DrawCircleV(ball, 16, white);
     Raylib.DrawTexture(bollBild, (int)ball.X-bollBild.width/2, (int)ball.Y-bollBild.height/2, Color.WHITE);
@@ -250,7 +251,7 @@ class Platta {
     public int speed;
     public int size = 1;
     public float size_change_timer = 0f;
-    public Color color_tint = new Color(255, 255, 255, 255);
+    public Color color_tint;
     Texture2D short_platta = Raylib.LoadTexture("Assets/Short Plate.png");
     Texture2D medium_platta = Raylib.LoadTexture("Assets/Medium Plate.png");
     Texture2D long_platta = Raylib.LoadTexture("Assets/Long Plate.png");
@@ -298,21 +299,19 @@ class Platta {
         if (size_change_timer > 0) {size_change_timer -= 1;}
 
         // (55*sin(x*0.1)+200);
-        if (size_change_timer <= 60*3 && size_change_timer != 0) { // Blinka att plattan ändrar storlek
-            // double b = (size_change_timer * (Math.PI)) / 180;
-            // color_tint.a = (System.Math.Sin(b)*55)+200;
-            // byte test = 
-            System.Console.WriteLine((System.Math.Sin(size_change_timer*0.1)*55)+200);
-            // color_tint.a = BitConverter.GetBytes((System.Math.Sin(size_change_timer*0.1)*55)+200);
+        if (size_change_timer <= 60*4 && size_change_timer != 0) { // Blinka att plattan ändrar storlek
+            color_tint = new Color(255, 255, 255, (int)(System.Math.Sin(size_change_timer*0.1)*100)+155);
         }
         if (size_change_timer == 0) {
             if (size < 1) {size++;}
             if (size > 1) {size--;}
+            color_tint = Color.WHITE;
         }
         // System.Math.Sin()
     }
     public void init_platta() {
         texture = medium_platta;
+        color_tint = Color.WHITE;
         position = new Vector2((Raylib.GetScreenWidth()/2)-texture.width/2, Raylib.GetScreenHeight() - (int)(Raylib.GetScreenHeight()/10));
     }
 }
