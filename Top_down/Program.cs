@@ -17,8 +17,6 @@ Texture2D bollBild = Raylib.LoadTexture("Assets/Ball.png");
 Texture2D game_over_screen = Raylib.LoadTexture("Assets/Backgrounds/Game over.png");
 Texture2D success_screen = Raylib.LoadTexture("Assets/Backgrounds/Success.png");
 
-
-
 List<Texture2D> block_texturer = new List<Texture2D>();
 block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Brown Block.png"));
 block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Dark Blue Block.png"));
@@ -36,26 +34,24 @@ health.Add(Raylib.LoadTexture("Assets/Lifebar/life2.png"));
 health.Add(Raylib.LoadTexture("Assets/Lifebar/life1.png"));
 health.Add(Raylib.LoadTexture("Assets/Lifebar/life0.png"));
 
-// Vector2 platta_size = new Vector2(long_platta.width, long_platta.height);
-// Rectangle platta = new Rectangle((screen_size.X/2)-platta_size.X/2, screen_size.Y - (int)(screen_size.Y/10), platta_size.X, platta_size.Y);
-
 Vector2 ball = new Vector2(screen_size.X/2, screen_size.Y/2);
 
 List<Texture2D> user_blocks_texture = new List<Texture2D>();
-List<Rectangle> blocks = new List<Rectangle>();
-int blocks_gap = 12;
-Vector2 block_size = new Vector2((float)(screen_size.X/11-blocks_gap), ((screen_size.X / 11 - blocks_gap) / 150) * 60); // Blockens res är 150x60.
-
-
+List<Block> blocks = new List<Block>();
+int amount_of_blocks_left = 0;
 Random rand = new Random();
 
+int blocks_gap = 12;
+Vector2 block_size = new Vector2((float)(screen_size.X/11-blocks_gap), ((screen_size.X / 11 - blocks_gap) / 150) * 60); // Blockens res är 150x60.
 
 for (int y = 0; y < 5; y++) {
     for (int x = 0; x < 10; x++) {
         if (rand.Next(0, 2) >= 1) { // Ju högre det andra värdet i Next är desto högre chans att block spawnar. 1=100%, 2=50%
             // Add block
-            blocks.Add(new Rectangle((((block_size.X + blocks_gap)*x)+block_size.X/2)+blocks_gap, ((block_size.Y + blocks_gap) * y)+blocks_gap, block_size.X, block_size.Y));
-            user_blocks_texture.Add(block_texturer[rand.Next(0, block_texturer.Count)]);
+            Block block = new Block();
+            block.init_block(new Vector2((((block_size.X + blocks_gap)*x)+block_size.X/2)+blocks_gap, (((block_size.Y + blocks_gap) * y)+blocks_gap)), block_texturer[rand.Next(0, block_texturer.Count)]);
+            blocks.Add(block);
+            amount_of_blocks_left++;
         }
     }
 }
@@ -65,7 +61,7 @@ platta.init_platta();
 platta.speed = 10;
 
 while (!Raylib.WindowShouldClose()) {
-    if (health.Count > 0 && blocks.Count > 0) {
+    if (health.Count > 0 && amount_of_blocks_left > 0) {
         bool bounced_x = false;
         bool bounced_y = false;
 
@@ -101,25 +97,25 @@ while (!Raylib.WindowShouldClose()) {
         }
 
 
-        // studsa på block
-        List<int> remove_blocks = new List<int>();
-        int index = 0;
-        foreach (Rectangle block in blocks) {
-            if (!Raylib.CheckCollisionCircleRec(ball, bollBild.width/2, block)) {index++; continue;}
-            remove_blocks.Add(index);                
+        foreach (Block block in blocks) {
+            if (!Raylib.CheckCollisionCircleRec(ball, bollBild.width/2, block.rect)) {continue;}
+            if (!block.is_alive) {continue;}
+            block.is_alive = false;
+            amount_of_blocks_left--;
+
             // bounce ball
-            Rectangle over_check = new Rectangle(block.x+(bollBild.width/4), block.y-bollBild.height, block_size.X-(bollBild.width/2), 1);
-            Rectangle below_check = new Rectangle(block.x+(bollBild.width/4), block.y+block_size.Y+bollBild.height, block_size.X-(bollBild.width/2), 1);
+            Rectangle over_check = new Rectangle(block.position.X+(bollBild.width/4), block.position.Y-bollBild.height, block.rect.width-(bollBild.width/2), 1);
+            Rectangle below_check = new Rectangle(block.position.X+(bollBild.width/4), block.position.Y+block.rect.height+bollBild.height, block.rect.width-(bollBild.width/2), 1);
             if (Raylib.CheckCollisionCircleRec(ball, bollBild.height, over_check)) { // Bollen är över blocket
                 if (!bounced_y) {ball_velocity.Y = -ball_velocity.Y;}
                 bounced_y = true;
             } else if (Raylib.CheckCollisionCircleRec(ball, bollBild.height, below_check)) { // Bollen är under blocket
                 if (!bounced_y) {ball_velocity.Y = -ball_velocity.Y;}
                 bounced_y = true;
-            } else if (block.x <= ball.X) { // Bollen är till höger om blocket
+            } else if (block.position.X <= ball.X) { // Bollen är till höger om blocket
                 if (!bounced_x) {ball_velocity.X = -ball_velocity.X;}
                 bounced_x = true;
-            } else if (block.x >= ball.X) { // Bollen är till vänster om blocket
+            } else if (block.position.X >= ball.X) { // Bollen är till vänster om blocket
                 if (!bounced_x) {ball_velocity.X = -ball_velocity.X;}
                 bounced_x = true;
             }
@@ -130,12 +126,11 @@ while (!Raylib.WindowShouldClose()) {
             // Spawn powerups
             if (rand.Next(0, 101) <= 100) { // second argument: percentage of blocks that spawn powerups.
                 Powerup powerup = new Powerup();
-                powerup.position = new Vector2(block.x, block.y);
+                powerup.position = new Vector2(block.position.X, block.position.Y);
                 string[] alla_powerups = Directory.GetFiles("Assets/Powerups/");
                 powerup.name = alla_powerups[rand.Next(0, alla_powerups.Length)].Replace("Assets/Powerups/", "").Replace(".png", "");
                 powerup.texture = Raylib.LoadTexture($"Assets/Powerups/{powerup.name}.png");
                 powerups.Add(powerup);
-                System.Console.WriteLine(powerup.texture);
             }
         }
         foreach (Powerup powerup in powerups) {powerup.position.Y += powerup.speed;}
@@ -162,15 +157,6 @@ while (!Raylib.WindowShouldClose()) {
         foreach (Powerup powerup in remove_powerups) {
             powerups.Remove(powerup);
         }
-
-
-        
-        remove_blocks.Reverse();
-        foreach (int block in remove_blocks) {
-            blocks.RemoveAt(block);
-            user_blocks_texture.RemoveAt(block);
-        }
-
         
         // calculating direction of ball
         ball.X += ball_velocity.X * actual_ball_speed;
@@ -189,7 +175,7 @@ while (!Raylib.WindowShouldClose()) {
     Raylib.EndDrawing();
 
     }
-    else if (blocks.Count == 0) // vinner
+    else if (amount_of_blocks_left == 0) // vinner
     {
     Raylib.BeginDrawing();
     Raylib.ClearBackground(Color.DARKGRAY);
@@ -209,14 +195,14 @@ void draw_game() {
     Raylib.BeginDrawing();
     Raylib.ClearBackground(Color.DARKGRAY);
 
-    int index = 0;
-    foreach (Rectangle block in blocks) { // Ritar alla block
+    foreach (Block block in blocks) { // Ritar alla block
         Texture2D block_textur = block_texturer[rand.Next(0, block_texturer.Count)];
 
         // Raylib.DrawRectangleRec(block, Color.WHITE);
-        Raylib.DrawTexturePro(user_blocks_texture[index], new Rectangle(0, 0, block_textur.width, block_textur.height), new Rectangle(block.x, block.y, block.width, block.height), new Vector2(0, 0), 0, Color.WHITE);
+        if (block.is_alive) {
+            Raylib.DrawTexturePro(block.texture, new Rectangle(0, 0, block_textur.width, block_textur.height), block.rect, new Vector2(0, 0), 0, Color.WHITE);
+        }
         // Raylib.DrawText(index.ToString(), (int)block.x, (int)block.y, 32, Color.WHITE);
-        index++;
     }
 
     foreach (Powerup powerup in powerups) {
@@ -227,7 +213,6 @@ void draw_game() {
 
 
     // Raylib.DrawRectangleRec(platta, Color.WHITE);
-    Console.WriteLine(platta.color_tint);
     Raylib.DrawTexture(platta.texture, (int)platta.position.X, (int)platta.position.Y, platta.color_tint);
     // Raylib.DrawCircleV(ball, 16, white);
     Raylib.DrawTexture(bollBild, (int)ball.X-bollBild.width/2, (int)ball.Y-bollBild.height/2, Color.WHITE);
@@ -319,6 +304,8 @@ class Platta {
         if (size_change_timer <= 60*4 && size_change_timer != 0) { // Blinka att plattan ändrar storlek
             color_tint = new Color(255, 255, 255, (int)(System.Math.Sin(size_change_timer*0.1)*100)+155);
         }
+        else {color_tint = Color.WHITE;}
+
         if (size_change_timer == 0) {
             if (size < 1) {size++;}
             if (size > 1) {size--;}
@@ -330,5 +317,24 @@ class Platta {
         texture = medium_platta;
         color_tint = Color.WHITE;
         position = new Vector2((Raylib.GetScreenWidth()/2)-texture.width/2, Raylib.GetScreenHeight() - (int)(Raylib.GetScreenHeight()/10));
+    }
+}
+
+class Block {
+    public float blocks_gap = 12f;
+    Vector2 block_size;
+
+    public Vector2 position;
+    public bool is_alive;
+    public Texture2D texture;
+    public Rectangle rect;
+
+    public void init_block(Vector2 pos, Texture2D textur) {
+        block_size = new Vector2((float)(Raylib.GetScreenWidth()/11-blocks_gap), ((Raylib.GetScreenWidth() / 11 - blocks_gap) / 150) * 60); // Blockens res är 150x60.
+        position = pos;
+        texture = textur;
+        is_alive = true;
+        rect = new Rectangle(position.X, position.Y, block_size.X, block_size.Y);
+        Console.WriteLine(textur);
     }
 }
