@@ -1,7 +1,9 @@
 ﻿using Raylib_cs;
 using System.Numerics;
 
-Vector2 ball_velocity = new Vector2(0, -1);
+Random rand = new Random();
+
+Vector2 ball_velocity = new Vector2((float)(rand.NextDouble()-.5), 1);
 const int ball_speed_base = 5;
 float ball_speed = ball_speed_base;
 
@@ -39,7 +41,6 @@ Vector2 ball = new Vector2(screen_size.X/2, screen_size.Y/2);
 List<Texture2D> user_blocks_texture = new List<Texture2D>();
 List<Block> blocks = new List<Block>();
 int amount_of_blocks_left = 0;
-Random rand = new Random();
 
 int blocks_gap = 12;
 Vector2 block_size = new Vector2((float)(screen_size.X/11-blocks_gap), ((screen_size.X / 11 - blocks_gap) / 150) * 60); // Blockens res är 150x60.
@@ -83,9 +84,9 @@ while (!Raylib.WindowShouldClose()) {
         } else if (ball.Y > (screen_size.Y - bollBild.height/2)) { // hits bottom
             health.RemoveAt(0);
             if (health.Count == 0) {continue;}
-            ball.X = screen_size.X/2;
+            ball.X = platta.position.X+(platta.width/2);
             ball.Y = screen_size.Y/2;
-            ball_velocity = new Vector2(0, 1);
+            ball_velocity = new Vector2((float)(rand.NextDouble()-.5), 1);
             actual_ball_speed = 1;
             ball_speed = ball_speed_base; // !! ball speeds need rework
         } else if (Raylib.CheckCollisionCircleRec(ball, bollBild.width/2, platta.rect)) { // träffar platta
