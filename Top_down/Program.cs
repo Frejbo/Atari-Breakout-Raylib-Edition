@@ -10,6 +10,8 @@ float ball_speed = ball_speed_base;
 float ball_acceleration = (float)0.1; // ball_speed / ball_acceleration måste vara möjligt.
 float actual_ball_speed = 1; // Ändra inte den här!
 
+int game_over_tick_speed = 0;
+
 Vector2 screen_size = new Vector2(1280, 720);
 Rectangle screen_rect = new Rectangle(0, 0, screen_size.X, screen_size.Y);
 Raylib.InitWindow((int)screen_size.X, (int)screen_size.Y, "Atari Breakout");
@@ -18,6 +20,11 @@ Raylib.SetTargetFPS(60);
 Texture2D bollBild = Raylib.LoadTexture("Assets/Ball.png");
 Texture2D game_over_screen = Raylib.LoadTexture("Assets/Backgrounds/Game over.png");
 Texture2D success_screen = Raylib.LoadTexture("Assets/Backgrounds/Success.png");
+Texture2D bg = Raylib.LoadTexture("Assets/Backgrounds/Meny.png");
+
+Texture2D start_button_texture = Raylib.LoadTexture("Assets/Buttons/Starta knapp.png");
+start_button_texture.width = start_button_texture.width / 4;
+start_button_texture.height = start_button_texture.height / 4;
 
 List<Texture2D> block_texturer = new List<Texture2D>();
 block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Brown Block.png"));
@@ -31,10 +38,11 @@ block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Yellow Block.png"));
 
 List<Powerup> powerups = new List<Powerup>();
 
+List<Texture2D> health_fact = new List<Texture2D>();
+health_fact.Add(Raylib.LoadTexture("Assets/Lifebar/life2.png"));
+health_fact.Add(Raylib.LoadTexture("Assets/Lifebar/life1.png"));
+health_fact.Add(Raylib.LoadTexture("Assets/Lifebar/life0.png"));
 List<Texture2D> health = new List<Texture2D>();
-health.Add(Raylib.LoadTexture("Assets/Lifebar/life2.png"));
-health.Add(Raylib.LoadTexture("Assets/Lifebar/life1.png"));
-health.Add(Raylib.LoadTexture("Assets/Lifebar/life0.png"));
 
 Vector2 ball = new Vector2(screen_size.X/2, screen_size.Y/2);
 
@@ -45,14 +53,16 @@ int amount_of_blocks_left = 0;
 int blocks_gap = 12;
 Vector2 block_size = new Vector2((float)(screen_size.X/11-blocks_gap), ((screen_size.X / 11 - blocks_gap) / 150) * 60); // Blockens res är 150x60.
 
-for (int y = 0; y < 5; y++) {
-    for (int x = 0; x < 10; x++) {
-        if (rand.Next(0, 2) >= 1) { // Ju högre det andra värdet i Next är desto högre chans att block spawnar. 1=100%, 2=50%
-            // Add block
-            Block block = new Block();
-            block.init_block(new Vector2((((block_size.X + blocks_gap)*x)+block_size.X/2)+blocks_gap, (((block_size.Y + blocks_gap) * y)+blocks_gap)), block_texturer[rand.Next(0, block_texturer.Count)]);
-            blocks.Add(block);
-            amount_of_blocks_left++;
+void randomize_block_map() {
+    for (int y = 0; y < 5; y++) {
+        for (int x = 0; x < 10; x++) {
+            if (rand.Next(0, 2) >= 1) { // Ju högre det andra värdet i Next är desto högre chans att block spawnar. 1=100%, 2=50%
+                // Add block
+                Block block = new Block();
+                block.init_block(new Vector2((((block_size.X + blocks_gap)*x)+block_size.X/2)+blocks_gap, (((block_size.Y + blocks_gap) * y)+blocks_gap)), block_texturer[rand.Next(0, block_texturer.Count)]);
+                blocks.Add(block);
+                amount_of_blocks_left++;
+            }
         }
     }
 }
@@ -61,10 +71,36 @@ Platta platta = new Platta();
 platta.init_platta();
 platta.speed = 10;
 
+bool bounced_x = false;
+bool bounced_y = false;
+
+bool game_active = false;
+
 while (!Raylib.WindowShouldClose()) {
-    if (health.Count > 0 && amount_of_blocks_left > 0) {
-        bool bounced_x = false;
-        bool bounced_y = false;
+    if (!game_active) {
+        main_menu();
+        continue;
+    }
+
+    if (health.Count <= 0) {
+        game_over();
+        continue;
+    } else if (amount_of_blocks_left <= 0) {
+        // vinner
+        game_active = false;
+        Raylib.BeginDrawing();
+        Raylib.ClearBackground(Color.DARKGRAY);
+
+        Raylib.DrawTexturePro(success_screen, get_texture_rect(success_screen), screen_rect, new Vector2(0, 0), 0, Color.WHITE);
+
+        Raylib.EndDrawing();
+        continue;
+    }
+
+    if (game_active) {
+        // play
+        bounced_x = false;
+        bounced_y = false;
 
         platta.tick_platta_size();
 
@@ -73,29 +109,9 @@ while (!Raylib.WindowShouldClose()) {
         if (actual_ball_speed < ball_speed) {actual_ball_speed += ball_acceleration;}
         if (actual_ball_speed > ball_speed) {actual_ball_speed = ball_speed;}
 
-        // ball
+
         // studsa på kanter och hörn
-        if ((ball.X < 1 || ball.X > (screen_size.X - bollBild.width)) && (ball.Y < 1 || ball.Y > (screen_size.Y - bollBild.height))) {
-            ball_velocity = -ball_velocity;
-        } else if(ball.X-bollBild.width/2 < 1 || ball.X > (screen_size.X - bollBild.width/2)) {
-            ball_velocity.X -= (ball_velocity.X*2);
-        } else if (ball.Y < 1) {
-            ball_velocity.Y -= (ball_velocity.Y*2);
-        } else if (ball.Y > (screen_size.Y - bollBild.height/2)) { // hits bottom
-            health.RemoveAt(0);
-            if (health.Count == 0) {continue;}
-            ball.X = platta.position.X+(platta.width/2);
-            ball.Y = screen_size.Y/2;
-            ball_velocity = new Vector2((float)(rand.NextDouble()-.5), 1);
-            actual_ball_speed = 1;
-            ball_speed = ball_speed_base; // !! ball speeds need rework
-        } else if (Raylib.CheckCollisionCircleRec(ball, bollBild.width/2, platta.rect)) { // träffar platta
-            if (ball.Y > platta.position.Y-(bollBild.height/2)) {
-                ball.Y = platta.position.Y-(bollBild.height/2); // sets the boll on top om den är under plattan tpy
-            }
-            ball_velocity.Y -= (ball_velocity.Y*2);
-            ball_velocity.X = ball_velocity.X + ((ball.X - platta.position.X - (platta.width/2))/platta.width); // skickar bollens x velocity beroende på var man träffar plattan.
-        }
+        if (!bounce_ball()) {continue;}
 
 
         foreach (Block block in blocks) {
@@ -104,25 +120,7 @@ while (!Raylib.WindowShouldClose()) {
             block.is_alive = false;
             amount_of_blocks_left--;
 
-            // bounce ball
-            Rectangle over_check = new Rectangle(block.position.X+(bollBild.width/4), block.position.Y-bollBild.height, block.rect.width-(bollBild.width/2), 1);
-            Rectangle below_check = new Rectangle(block.position.X+(bollBild.width/4), block.position.Y+block.rect.height+bollBild.height, block.rect.width-(bollBild.width/2), 1);
-            if (Raylib.CheckCollisionCircleRec(ball, bollBild.height, over_check)) { // Bollen är över blocket
-                if (!bounced_y) {ball_velocity.Y = -ball_velocity.Y;}
-                bounced_y = true;
-            } else if (Raylib.CheckCollisionCircleRec(ball, bollBild.height, below_check)) { // Bollen är under blocket
-                if (!bounced_y) {ball_velocity.Y = -ball_velocity.Y;}
-                bounced_y = true;
-            } else if (block.position.X <= ball.X) { // Bollen är till höger om blocket
-                if (!bounced_x) {ball_velocity.X = -ball_velocity.X;}
-                bounced_x = true;
-            } else if (block.position.X >= ball.X) { // Bollen är till vänster om blocket
-                if (!bounced_x) {ball_velocity.X = -ball_velocity.X;}
-                bounced_x = true;
-            }
-            ball_speed += (float)0.1;
-
-
+            bounce_ball_on_block(block);
 
             // Spawn powerups
             if (rand.Next(0, 101) <= 100) { // second argument: percentage of blocks that spawn powerups.
@@ -136,28 +134,7 @@ while (!Raylib.WindowShouldClose()) {
         }
         foreach (Powerup powerup in powerups) {powerup.position.Y += powerup.speed;}
         
-        // Checking if powerup should be taken
-        List<Powerup> remove_powerups = new List<Powerup>();
-        foreach (Powerup powerup in powerups) {
-            if (!Raylib.CheckCollisionRecs(new Rectangle(powerup.position.X, powerup.position.Y, powerup.size.X, powerup.size.Y), platta.rect)) {continue;}
-            // Om powerupen ska aktiveras & tas bort:
-            if (powerup.name == "Longer Plate") {
-                platta.increase_platta_size();
-            } else if (powerup.name == "Shorter Plate") {
-                platta.decrease_platta_size();
-            } else if (powerup.name == "speed down") {
-                ball_speed -= 2;
-                if (ball_speed < 1) {ball_speed = 1;} // så inte bollen kan råka åka baklänges hehe
-            } else if (powerup.name == "speed up") {
-                ball_speed += 2;
-            } else {
-                System.Console.WriteLine($"Tog upp {powerup.name}, men den fungerar inte i nuläget.");
-            }
-            remove_powerups.Add(powerup);
-        }
-        foreach (Powerup powerup in remove_powerups) {
-            powerups.Remove(powerup);
-        }
+        check_to_pick_up_powerup();
         
         // calculating direction of ball
         ball.X += ball_velocity.X * actual_ball_speed;
@@ -165,28 +142,133 @@ while (!Raylib.WindowShouldClose()) {
 
         draw_game();
     }
-    else if (health.Count == 0) // Death
-    {
 
+}
+
+void game_over() {
     Raylib.BeginDrawing();
     Raylib.ClearBackground(Color.DARKGRAY);
 
     Raylib.DrawTexturePro(game_over_screen, get_texture_rect(game_over_screen), screen_rect, new Vector2(0, 0), 0, Color.WHITE);
 
     Raylib.EndDrawing();
-
-    }
-    else if (amount_of_blocks_left == 0) // vinner
-    {
-    Raylib.BeginDrawing();
-    Raylib.ClearBackground(Color.DARKGRAY);
-
-    Raylib.DrawTexturePro(success_screen, get_texture_rect(success_screen), screen_rect, new Vector2(0, 0), 0, Color.WHITE);
-
-    Raylib.EndDrawing();
+    game_over_tick_speed--;
+    if (game_over_tick_speed <= 0) {
+        game_active = false;
     }
 }
-Console.ReadLine();
+
+
+void main_menu() {
+    Raylib.BeginDrawing();
+    
+    Rectangle org_rect = new Rectangle(0, 0, bg.width, bg.height); 
+    Rectangle dest = new Rectangle(0, 0, Raylib.GetScreenWidth(), Raylib.GetScreenHeight());
+    Raylib.DrawTexturePro(bg, org_rect, dest, new Vector2(0, 0), 0, Color.WHITE);
+
+
+    Rectangle start_button_rect = new Rectangle((Raylib.GetScreenWidth()/2)-(start_button_texture.width/2), Raylib.GetScreenHeight()/2, start_button_texture.width, start_button_texture.height);
+
+    Raylib.DrawTexturePro(start_button_texture, // start button
+        new Rectangle(0, 0, start_button_texture.width, start_button_texture.height),
+        start_button_rect,
+        new Vector2(0,0),
+        0, Color.WHITE
+    );
+
+    Raylib.EndDrawing();
+
+
+    // logic
+    if (Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT)) {
+        if (Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(),  start_button_rect)) {
+            // start button pressed
+            Console.WriteLine("Startar");
+            randomize_block_map();
+            game_active = true;
+            health.Add(Raylib.LoadTexture("Assets/Lifebar/life2.png"));
+            health.Add(Raylib.LoadTexture("Assets/Lifebar/life1.png"));
+            health.Add(Raylib.LoadTexture("Assets/Lifebar/life0.png"));
+            ball.X = screen_size.X/2;
+            ball.Y = screen_size.Y/2;
+            ball_velocity = new Vector2((float)(rand.NextDouble()-.5), 1);
+            actual_ball_speed = 1;
+            ball_speed = ball_speed_base; // !! ball speeds need rework
+            game_over_tick_speed = 120;
+            platta.init_platta();
+        }
+    }
+}
+
+
+bool bounce_ball() {
+    if ((ball.X < 1 || ball.X > (screen_size.X - bollBild.width)) && (ball.Y < 1 || ball.Y > (screen_size.Y - bollBild.height))) {
+        ball_velocity = -ball_velocity;
+    } else if(ball.X-bollBild.width/2 < 1 || ball.X > (screen_size.X - bollBild.width/2)) {
+        ball_velocity.X -= (ball_velocity.X*2);
+    } else if (ball.Y < 1) {
+        ball_velocity.Y -= (ball_velocity.Y*2);
+    } else if (ball.Y > (screen_size.Y - bollBild.height/2)) { // hits bottom
+        health.RemoveAt(0);
+        if (health.Count == 0) {return (false);}
+        ball.X = platta.position.X+(platta.width/2);
+        ball.Y = screen_size.Y/2;
+        ball_velocity = new Vector2((float)(rand.NextDouble()-.5), 1);
+        actual_ball_speed = 1;
+        ball_speed = ball_speed_base; // !! ball speeds need rework
+    } else if (Raylib.CheckCollisionCircleRec(ball, bollBild.width/2, platta.rect)) { // träffar platta
+        if (ball.Y > platta.position.Y-(bollBild.height/2)) {
+            ball.Y = platta.position.Y-(bollBild.height/2); // sets the boll on top om den är under plattan tpy
+        }
+        ball_velocity.Y -= (ball_velocity.Y*2);
+        ball_velocity.X = ball_velocity.X + ((ball.X - platta.position.X - (platta.width/2))/platta.width); // skickar bollens x velocity beroende på var man träffar plattan.
+    }
+    return (true);
+}
+
+void bounce_ball_on_block(Block block) {
+    Rectangle over_check = new Rectangle(block.position.X+(bollBild.width/4), block.position.Y-bollBild.height, block.rect.width-(bollBild.width/2), 1);
+    Rectangle below_check = new Rectangle(block.position.X+(bollBild.width/4), block.position.Y+block.rect.height+bollBild.height, block.rect.width-(bollBild.width/2), 1);
+    if (Raylib.CheckCollisionCircleRec(ball, bollBild.height, over_check)) { // Bollen är över blocket
+        if (!bounced_y) {ball_velocity.Y = -ball_velocity.Y;}
+        bounced_y = true;
+    } else if (Raylib.CheckCollisionCircleRec(ball, bollBild.height, below_check)) { // Bollen är under blocket
+        if (!bounced_y) {ball_velocity.Y = -ball_velocity.Y;}
+        bounced_y = true;
+    } else if (block.position.X <= ball.X) { // Bollen är till höger om blocket
+        if (!bounced_x) {ball_velocity.X = -ball_velocity.X;}
+        bounced_x = true;
+    } else if (block.position.X >= ball.X) { // Bollen är till vänster om blocket
+        if (!bounced_x) {ball_velocity.X = -ball_velocity.X;}
+        bounced_x = true;
+    }
+    ball_speed += (float)0.1;
+}
+
+void check_to_pick_up_powerup() {
+    // Checking if powerup should be taken
+    List<Powerup> remove_powerups = new List<Powerup>();
+    foreach (Powerup powerup in powerups) {
+        if (!Raylib.CheckCollisionRecs(new Rectangle(powerup.position.X, powerup.position.Y, powerup.size.X, powerup.size.Y), platta.rect)) {continue;}
+        // Om powerupen ska aktiveras & tas bort:
+        if (powerup.name == "Longer Plate") {
+            platta.increase_platta_size();
+        } else if (powerup.name == "Shorter Plate") {
+            platta.decrease_platta_size();
+        } else if (powerup.name == "speed down") {
+            ball_speed -= 2;
+            if (ball_speed < 1) {ball_speed = 1;} // så inte bollen kan råka åka baklänges hehe
+        } else if (powerup.name == "speed up") {
+            ball_speed += 2;
+        } else {
+            System.Console.WriteLine($"Tog upp {powerup.name}, men den fungerar inte i nuläget.");
+        }
+        remove_powerups.Add(powerup);
+    }
+    foreach (Powerup powerup in remove_powerups) {
+        powerups.Remove(powerup);
+    }
+}
 
 Rectangle get_texture_rect(Texture2D texture) {return new Rectangle(0, 0, texture.width, texture.height);}
 
@@ -316,6 +398,7 @@ class Platta {
     }
     public void init_platta() {
         texture = medium_platta;
+        size = 1;
         color_tint = Color.WHITE;
         position = new Vector2((Raylib.GetScreenWidth()/2)-texture.width/2, Raylib.GetScreenHeight() - (int)(Raylib.GetScreenHeight()/10));
     }
