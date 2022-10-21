@@ -10,7 +10,7 @@ float ball_speed = ball_speed_base;
 float ball_acceleration = (float)0.1; // ball_speed / ball_acceleration måste vara möjligt.
 float actual_ball_speed = 1; // Ändra inte den här!
 
-int game_over_tick_speed = 0;
+int screen_tick_length = 0;
 
 Vector2 screen_size = new Vector2(1280, 720);
 Rectangle screen_rect = new Rectangle(0, 0, screen_size.X, screen_size.Y);
@@ -38,10 +38,6 @@ block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Yellow Block.png"));
 
 List<Powerup> powerups = new List<Powerup>();
 
-List<Texture2D> health_fact = new List<Texture2D>();
-health_fact.Add(Raylib.LoadTexture("Assets/Lifebar/life2.png"));
-health_fact.Add(Raylib.LoadTexture("Assets/Lifebar/life1.png"));
-health_fact.Add(Raylib.LoadTexture("Assets/Lifebar/life0.png"));
 List<Texture2D> health = new List<Texture2D>();
 
 Vector2 ball = new Vector2(screen_size.X/2, screen_size.Y/2);
@@ -56,7 +52,7 @@ Vector2 block_size = new Vector2((float)(screen_size.X/11-blocks_gap), ((screen_
 void randomize_block_map() {
     for (int y = 0; y < 5; y++) {
         for (int x = 0; x < 10; x++) {
-            if (rand.Next(0, 2) >= 1) { // Ju högre det andra värdet i Next är desto högre chans att block spawnar. 1=100%, 2=50%
+            if (rand.Next(0, 101) <= 2) { // Andra värdet är block som spawnar, i
                 // Add block
                 Block block = new Block();
                 block.init_block(new Vector2((((block_size.X + blocks_gap)*x)+block_size.X/2)+blocks_gap, (((block_size.Y + blocks_gap) * y)+blocks_gap)), block_texturer[rand.Next(0, block_texturer.Count)]);
@@ -87,13 +83,8 @@ while (!Raylib.WindowShouldClose()) {
         continue;
     } else if (amount_of_blocks_left <= 0) {
         // vinner
-        game_active = false;
-        Raylib.BeginDrawing();
-        Raylib.ClearBackground(Color.DARKGRAY);
-
-        Raylib.DrawTexturePro(success_screen, get_texture_rect(success_screen), screen_rect, new Vector2(0, 0), 0, Color.WHITE);
-
-        Raylib.EndDrawing();
+        // game_active = false;
+        success();
         continue;
     }
 
@@ -152,8 +143,20 @@ void game_over() {
     Raylib.DrawTexturePro(game_over_screen, get_texture_rect(game_over_screen), screen_rect, new Vector2(0, 0), 0, Color.WHITE);
 
     Raylib.EndDrawing();
-    game_over_tick_speed--;
-    if (game_over_tick_speed <= 0) {
+    screen_tick_length--;
+    if (screen_tick_length <= 0) {
+        game_active = false;
+    }
+}
+void success() {
+    Raylib.BeginDrawing();
+    Raylib.ClearBackground(Color.DARKGRAY);
+
+    Raylib.DrawTexturePro(success_screen, get_texture_rect(success_screen), screen_rect, new Vector2(0, 0), 0, Color.WHITE);
+
+    Raylib.EndDrawing();
+    screen_tick_length--;
+    if (screen_tick_length <= 0) {
         game_active = false;
     }
 }
@@ -162,9 +165,8 @@ void game_over() {
 void main_menu() {
     Raylib.BeginDrawing();
     
-    Rectangle org_rect = new Rectangle(0, 0, bg.width, bg.height); 
     Rectangle dest = new Rectangle(0, 0, Raylib.GetScreenWidth(), Raylib.GetScreenHeight());
-    Raylib.DrawTexturePro(bg, org_rect, dest, new Vector2(0, 0), 0, Color.WHITE);
+    Raylib.DrawTexturePro(bg, get_texture_rect(bg), dest, new Vector2(0, 0), 0, Color.WHITE);
 
 
     Rectangle start_button_rect = new Rectangle((Raylib.GetScreenWidth()/2)-(start_button_texture.width/2), Raylib.GetScreenHeight()/2, start_button_texture.width, start_button_texture.height);
@@ -184,17 +186,20 @@ void main_menu() {
         if (Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(),  start_button_rect)) {
             // start button pressed
             Console.WriteLine("Startar");
-            randomize_block_map();
             game_active = true;
+            health.Clear();
             health.Add(Raylib.LoadTexture("Assets/Lifebar/life2.png"));
             health.Add(Raylib.LoadTexture("Assets/Lifebar/life1.png"));
             health.Add(Raylib.LoadTexture("Assets/Lifebar/life0.png"));
+            powerups.Clear();
+            blocks.Clear();
+            randomize_block_map();
             ball.X = screen_size.X/2;
             ball.Y = screen_size.Y/2;
             ball_velocity = new Vector2((float)(rand.NextDouble()-.5), 1);
             actual_ball_speed = 1;
             ball_speed = ball_speed_base; // !! ball speeds need rework
-            game_over_tick_speed = 120;
+            screen_tick_length = 120;
             platta.init_platta();
         }
     }
