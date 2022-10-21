@@ -39,7 +39,11 @@ Texture2D campaign_back_button = Raylib.LoadTexture("Assets/Buttons/Back knapp.p
 campaign_back_button.width = campaign_back_button.width / 4;
 campaign_back_button.height = campaign_back_button.height / 4;
 Texture2D left_button = Raylib.LoadTexture("Assets/Buttons/Left.png");
-Texture2D Right_button = Raylib.LoadTexture("Assets/Buttons/Right.png");
+left_button.width = (int)(left_button.width / 1.5f);
+left_button.height = (int)(left_button.height / 1.5f);
+Texture2D right_button = Raylib.LoadTexture("Assets/Buttons/Right.png");
+right_button.width = (int)(right_button.width / 1.5f);
+right_button.height = (int)(right_button.height / 1.5f);
 
 List<Texture2D> levels_preview_texture = new List<Texture2D>();
 foreach (int index in Enumerable.Range(0, Directory.GetFiles("Assets/Buttons/Levels").Length)) {
@@ -255,12 +259,45 @@ void draw_campaign_menu(int page = 0) {
         campaign_menu_open = false;
     }
 
+    // draw left/right button
+    Rectangle left_button_rect = new Rectangle((Raylib.GetScreenWidth()/2)-(left_button.width*1.5f), Raylib.GetScreenHeight()-bg_rect.y-(left_button.height*1.2f), left_button.width, left_button.height);
+    Raylib.DrawTexturePro(
+        left_button, get_texture_rect(left_button),
+        left_button_rect,
+        new Vector2(0, 0),
+        0, Color.WHITE
+    );
+    Rectangle right_button_rect = new Rectangle((Raylib.GetScreenWidth()/2)+(right_button.width*.5f), Raylib.GetScreenHeight()-bg_rect.y-(right_button.height*1.2f), right_button.width, right_button.height);
+    Raylib.DrawTexturePro(
+        right_button, get_texture_rect(right_button),
+        right_button_rect,
+        new Vector2(0, 0),
+        0, Color.WHITE
+    );
+    // check arrows clicked
+    if (Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT) && Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(), left_button_rect)) {
+        campaign_menu_page--;
+        if (campaign_menu_page < 0) {campaign_menu_page = 0;}
+    }
+    if (Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT) && Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(), right_button_rect)) {
+        campaign_menu_page++;
+        if (campaign_menu_page > 1) {campaign_menu_page = 1;} // max 2 sidor i nuläget
+    }
+
 
     // draw level previews
-    int start_level_index = 9*(campaign_menu_page+1);
-    foreach (int y in Enumerable.Range(1, 3)) {
-        foreach (int x in Enumerable.Range(1, 3)) {
-            
+    int index = 0;
+    int start_index = campaign_menu_page*9;
+    foreach (int y in Enumerable.Range(0, 3)) {
+        foreach (int x in Enumerable.Range(0, 3)) {
+            Raylib.DrawTexturePro(
+                levels_preview_texture[index+start_index],
+                get_texture_rect(levels_preview_texture[index+start_index]),
+                new Rectangle((bg_rect.x*3.35f)+((bg_rect.width/4)*x), (bg_rect.y*3.6f)+((bg_rect.height/4)*y), bg_rect.width/4.2f, (float)bg_rect.height/4.5f),
+                new Vector2(0, 0),
+                0, Color.WHITE
+            );
+            index++;
         }
     }
 }
