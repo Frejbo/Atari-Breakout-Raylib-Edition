@@ -258,8 +258,10 @@ void draw_campaign_menu(int page = 0) {
 
     // draw level previews
     int start_level_index = 9*(campaign_menu_page+1);
-    foreach (int x in Enumerable.Range(1, 3)) {
-        continue;
+    foreach (int y in Enumerable.Range(1, 3)) {
+        foreach (int x in Enumerable.Range(1, 3)) {
+            
+        }
     }
 }
 
