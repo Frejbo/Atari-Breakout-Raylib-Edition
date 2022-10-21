@@ -41,15 +41,17 @@ campaign_back_button.height = campaign_back_button.height / 4;
 Texture2D left_button = Raylib.LoadTexture("Assets/Buttons/Left.png");
 Texture2D Right_button = Raylib.LoadTexture("Assets/Buttons/Right.png");
 
+List<Texture2D> levels_preview_texture = new List<Texture2D>();
+foreach (int index in Enumerable.Range(0, Directory.GetFiles("Assets/Buttons/Levels").Length)) {
+    Texture2D texture = Raylib.LoadTexture($"Assets/Buttons/Levels/Level {index+1}.png");
+    levels_preview_texture.Add(texture);
+}
+
 List<Texture2D> block_texturer = new List<Texture2D>();
-block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Brown Block.png"));
-block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Dark Blue Block.png"));
-block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Green Block.png"));
-block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Orange Block.png"));
-block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Pink Block.png"));
-block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Red Block.png"));
-block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Turquise Block.png"));
-block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Yellow Block.png"));
+foreach (string path in Directory.GetFiles("Assets/Blocks/")) {
+    if (path.Contains("Hardness")) {continue;}
+    block_texturer.Add(Raylib.LoadTexture(path));
+}
 
 List<Powerup> powerups = new List<Powerup>();
 
@@ -255,7 +257,10 @@ void draw_campaign_menu(int page = 0) {
 
 
     // draw level previews
-    
+    int start_level_index = 9*(campaign_menu_page+1);
+    foreach (int x in Enumerable.Range(1, 3)) {
+        continue;
+    }
 }
 
 
