@@ -12,7 +12,10 @@ float actual_ball_speed = 1; // Ändra inte den här!
 int ball_color_a = 255;
 
 
+// rör inte
 int screen_tick_length = 0;
+bool campaign_menu_open = false;
+int campaign_menu_page = 0;
 
 Vector2 screen_size = new Vector2(1280, 720);
 Rectangle screen_rect = new Rectangle(0, 0, screen_size.X, screen_size.Y);
@@ -26,12 +29,17 @@ Texture2D bg = Raylib.LoadTexture("Assets/Backgrounds/Meny.png");
 Texture2D death_taggar = Raylib.LoadTexture("Assets/Death.png");
 
 Texture2D start_button_texture = Raylib.LoadTexture("Assets/Buttons/Starta knapp.png");
-Texture2D campaign_button_texture = Raylib.LoadTexture("Assets/Buttons/Campaign knapp.png");
-Texture2D campaign_menu_bg = Raylib.LoadTexture("Assets/Buttons/Campaign menu.png");
-Texture2D left_button = Raylib.LoadTexture("Assets/Buttons/Left.png");
-Texture2D Right_button = Raylib.LoadTexture("Assets/Buttons/Right.png");
 start_button_texture.width = start_button_texture.width / 4;
 start_button_texture.height = start_button_texture.height / 4;
+Texture2D campaign_button_texture = Raylib.LoadTexture("Assets/Buttons/Campaign knapp.png");
+campaign_button_texture.width = campaign_button_texture.width / 4;
+campaign_button_texture.height = campaign_button_texture.height / 4;
+Texture2D campaign_menu_bg = Raylib.LoadTexture("Assets/Buttons/Campaign menu.png");
+Texture2D campaign_back_button = Raylib.LoadTexture("Assets/Buttons/Back knapp.png");
+campaign_back_button.width = campaign_back_button.width / 4;
+campaign_back_button.height = campaign_back_button.height / 4;
+Texture2D left_button = Raylib.LoadTexture("Assets/Buttons/Left.png");
+Texture2D Right_button = Raylib.LoadTexture("Assets/Buttons/Right.png");
 
 List<Texture2D> block_texturer = new List<Texture2D>();
 block_texturer.Add(Raylib.LoadTexture("Assets/Blocks/Brown Block.png"));
@@ -169,6 +177,8 @@ void success() {
 }
 
 
+
+
 void main_menu() {
     Raylib.BeginDrawing();
     
@@ -177,20 +187,29 @@ void main_menu() {
 
 
     Rectangle start_button_rect = new Rectangle((Raylib.GetScreenWidth()/2)-(start_button_texture.width/2), Raylib.GetScreenHeight()/2, start_button_texture.width, start_button_texture.height);
-
     Raylib.DrawTexturePro(start_button_texture, // start button
-        new Rectangle(0, 0, start_button_texture.width, start_button_texture.height),
+        get_texture_rect(start_button_texture),
         start_button_rect,
         new Vector2(0,0),
         0, Color.WHITE
     );
+
+    Rectangle campaign_button_rect = new Rectangle((Raylib.GetScreenWidth()/2)-(campaign_button_texture.width/2), (Raylib.GetScreenHeight()/3)*2, campaign_button_texture.width, campaign_button_texture.height);
+    Raylib.DrawTexturePro(campaign_button_texture,
+        get_texture_rect(campaign_button_texture),
+        campaign_button_rect,
+        new Vector2(0, 0),
+        0, Color.WHITE
+    );
+
+    if (campaign_menu_open) {draw_campaign_menu(campaign_menu_page);}
 
     Raylib.EndDrawing();
 
 
     // logic
     if (Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT)) {
-        if (Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(),  start_button_rect)) {
+        if (Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(),  start_button_rect) && !campaign_menu_open) {
             // start button pressed
             Console.WriteLine("Startar");
             game_active = true;
@@ -209,9 +228,36 @@ void main_menu() {
             ball_speed = ball_speed_base; // !! ball speeds need rework
             screen_tick_length = 120;
             platta.init_platta();
+        } else if (Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(), campaign_button_rect) && !campaign_menu_open) {
+            // open campaign menu
+            campaign_menu_open = true;
+            campaign_menu_page = 0;
         }
     }
 }
+
+
+void draw_campaign_menu(int page = 0) {
+    // Raylib is already drawing.
+    float difference = (Raylib.GetScreenHeight()/10)*9 / (float)campaign_menu_bg.height; // covers 9/10 of screen height
+    Rectangle bg_rect = new Rectangle((Raylib.GetScreenWidth()/2)-((campaign_menu_bg.width*difference)/2), (Raylib.GetScreenHeight()/2)-((campaign_menu_bg.height*difference)/2), campaign_menu_bg.width*difference, campaign_menu_bg.height*difference);
+    Raylib.DrawTexturePro(campaign_menu_bg,
+        get_texture_rect(campaign_menu_bg),
+        bg_rect,
+        new Vector2(0,0),
+        0, Color.WHITE
+    );
+    Rectangle back_button_rect = new Rectangle(bg_rect.x+30+(campaign_back_button.width/2), bg_rect.y+20, campaign_back_button.width, campaign_back_button.height);
+    Raylib.DrawTexture(campaign_back_button, (int)back_button_rect.x, (int)back_button_rect.y, Color.WHITE);
+    if (Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT) && Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(), back_button_rect)) {
+        campaign_menu_open = false;
+    }
+
+
+    // draw level previews
+    
+}
+
 
 bool bounce_ball() {
     if (ball.Y > platta.position.Y) {
@@ -328,7 +374,6 @@ void draw_game() {
     Raylib.DrawTexture(health[0], ((int)screen_size.X - health[0].width) - 20, 20, new Color(255, 255, 255, 200));
 
     float difference = Raylib.GetScreenWidth() / (float)death_taggar.width;
-    System.Console.WriteLine(difference);
     Raylib.DrawTexturePro(
         death_taggar,
         get_texture_rect(death_taggar),
