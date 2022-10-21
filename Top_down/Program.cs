@@ -9,6 +9,8 @@ float ball_speed = ball_speed_base;
 
 float ball_acceleration = (float)0.1; // ball_speed / ball_acceleration måste vara möjligt.
 float actual_ball_speed = 1; // Ändra inte den här!
+int ball_color_a = 255;
+
 
 int screen_tick_length = 0;
 
@@ -21,8 +23,13 @@ Texture2D bollBild = Raylib.LoadTexture("Assets/Ball.png");
 Texture2D game_over_screen = Raylib.LoadTexture("Assets/Backgrounds/Game over.png");
 Texture2D success_screen = Raylib.LoadTexture("Assets/Backgrounds/Success.png");
 Texture2D bg = Raylib.LoadTexture("Assets/Backgrounds/Meny.png");
+Texture2D death_taggar = Raylib.LoadTexture("Assets/Death.png");
 
 Texture2D start_button_texture = Raylib.LoadTexture("Assets/Buttons/Starta knapp.png");
+Texture2D campaign_button_texture = Raylib.LoadTexture("Assets/Buttons/Campaign knapp.png");
+Texture2D campaign_menu_bg = Raylib.LoadTexture("Assets/Buttons/Campaign menu.png");
+Texture2D left_button = Raylib.LoadTexture("Assets/Buttons/Left.png");
+Texture2D Right_button = Raylib.LoadTexture("Assets/Buttons/Right.png");
 start_button_texture.width = start_button_texture.width / 4;
 start_button_texture.height = start_button_texture.height / 4;
 
@@ -52,7 +59,7 @@ Vector2 block_size = new Vector2((float)(screen_size.X/11-blocks_gap), ((screen_
 void randomize_block_map() {
     for (int y = 0; y < 5; y++) {
         for (int x = 0; x < 10; x++) {
-            if (rand.Next(0, 101) <= 2) { // Andra värdet är block som spawnar, i
+            if (rand.Next(0, 101) <= 50) { // Andra värdet är block som spawnar, i
                 // Add block
                 Block block = new Block();
                 block.init_block(new Vector2((((block_size.X + blocks_gap)*x)+block_size.X/2)+blocks_gap, (((block_size.Y + blocks_gap) * y)+blocks_gap)), block_texturer[rand.Next(0, block_texturer.Count)]);
@@ -114,7 +121,7 @@ while (!Raylib.WindowShouldClose()) {
             bounce_ball_on_block(block);
 
             // Spawn powerups
-            if (rand.Next(0, 101) <= 100) { // second argument: percentage of blocks that spawn powerups.
+            if (rand.Next(0, 101) <= 33) { // second argument: percentage of blocks that spawn powerups.
                 Powerup powerup = new Powerup();
                 powerup.position = new Vector2(block.position.X, block.position.Y);
                 string[] alla_powerups = Directory.GetFiles("Assets/Powerups/");
@@ -188,16 +195,17 @@ void main_menu() {
             Console.WriteLine("Startar");
             game_active = true;
             health.Clear();
+            powerups.Clear();
+            blocks.Clear();
             health.Add(Raylib.LoadTexture("Assets/Lifebar/life2.png"));
             health.Add(Raylib.LoadTexture("Assets/Lifebar/life1.png"));
             health.Add(Raylib.LoadTexture("Assets/Lifebar/life0.png"));
-            powerups.Clear();
-            blocks.Clear();
             randomize_block_map();
             ball.X = screen_size.X/2;
             ball.Y = screen_size.Y/2;
             ball_velocity = new Vector2((float)(rand.NextDouble()-.5), 1);
             actual_ball_speed = 1;
+            ball_color_a = 255;
             ball_speed = ball_speed_base; // !! ball speeds need rework
             screen_tick_length = 120;
             platta.init_platta();
@@ -205,15 +213,21 @@ void main_menu() {
     }
 }
 
-
 bool bounce_ball() {
+    if (ball.Y > platta.position.Y) {
+        // minska bollens alpha när den faller under plattan
+        ball_color_a-=10;
+        if (ball_color_a < 0) {ball_color_a = 0;}
+    }
+
     if ((ball.X < 1 || ball.X > (screen_size.X - bollBild.width)) && (ball.Y < 1 || ball.Y > (screen_size.Y - bollBild.height))) {
         ball_velocity = -ball_velocity;
     } else if(ball.X-bollBild.width/2 < 1 || ball.X > (screen_size.X - bollBild.width/2)) {
         ball_velocity.X -= (ball_velocity.X*2);
-    } else if (ball.Y < 1) {
+    } else if ((ball.Y-bollBild.height/2) < 1) {
         ball_velocity.Y -= (ball_velocity.Y*2);
     } else if (ball.Y > (screen_size.Y - bollBild.height/2)) { // hits bottom
+        ball_color_a = 255;
         health.RemoveAt(0);
         if (health.Count == 0) {return (false);}
         ball.X = platta.position.X+(platta.width/2);
@@ -300,12 +314,28 @@ void draw_game() {
     }
 
 
-    // Raylib.DrawRectangleRec(platta, Color.WHITE);
-    Raylib.DrawTexture(platta.texture, (int)platta.position.X, (int)platta.position.Y, platta.color_tint);
-    // Raylib.DrawCircleV(ball, 16, white);
-    Raylib.DrawTexture(bollBild, (int)ball.X-bollBild.width/2, (int)ball.Y-bollBild.height/2, Color.WHITE);
+    Raylib.DrawTexturePro(
+        platta.texture,
+        get_texture_rect(platta.texture),
+        new Rectangle(platta.position.X, platta.position.Y, (int)(platta.width*1.5), (int)(platta.height*1.5)),
+        new Vector2(0, 0),
+        0, Color.WHITE
+    );
+    // Raylib.DrawTexture(platta.texture, (int)platta.position.X, (int)platta.position.Y, platta.color_tint);
+
+    Raylib.DrawTexture(bollBild, (int)ball.X-bollBild.width/2, (int)ball.Y-bollBild.height/2, new Color(255, 255, 255, ball_color_a));
 
     Raylib.DrawTexture(health[0], ((int)screen_size.X - health[0].width) - 20, 20, new Color(255, 255, 255, 200));
+
+    float difference = Raylib.GetScreenWidth() / (float)death_taggar.width;
+    System.Console.WriteLine(difference);
+    Raylib.DrawTexturePro(
+        death_taggar,
+        get_texture_rect(death_taggar),
+        new Rectangle(0, Raylib.GetScreenHeight()-death_taggar.height*difference, death_taggar.width*difference, death_taggar.height*difference),
+        new Vector2(0, 0),
+        0, Color.WHITE
+    );
 
     Raylib.EndDrawing();
 }
@@ -375,8 +405,8 @@ class Platta {
             }
         }
         if (Raylib.IsKeyDown(KeyboardKey.KEY_D) || Raylib.IsKeyDown(KeyboardKey.KEY_RIGHT)) {
-            if (position.X + texture.width >= Raylib.GetScreenWidth()) {
-                position.X = Raylib.GetScreenWidth() - texture.width;
+            if (position.X + ((int)texture.width*1.5) >= Raylib.GetScreenWidth()) {
+                position.X = Raylib.GetScreenWidth() - (int)(texture.width*1.5);
             } else {
                 position.X += speed;
             }
