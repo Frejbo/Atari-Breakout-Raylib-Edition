@@ -1,6 +1,29 @@
 ﻿using Raylib_cs;
 using System.Numerics;
 
+
+Dictionary<int, string> Banor = new();
+Banor.Add(1, "00000300063000630006300063000630006300063000600000");
+Banor.Add(2, "30303060605000505050005000050005050500050606030303");
+Banor.Add(3, "01010106010131003030304033040303030013101060101010");
+Banor.Add(4, "00000044444000041050404054040541050400000444400000");
+Banor.Add(5, "61010001016101000107610756107500107610100010161010");
+Banor.Add(6, "00016003100430054000500005000054000043000031000016");
+Banor.Add(7, "08830388800088308380388300880038880008830388000380");
+Banor.Add(8, "84000444000444000440004440044400440044400440088000");
+Banor.Add(9, "36631622632552657752257752577557752255266226336631");
+Banor.Add(10, "63636305065300530056000000000030056530053050663636");
+Banor.Add(11, "00600006000606006260625266252606260060600060000600");
+Banor.Add(12, "00000030000300003300003000030002220224220222000000");
+Banor.Add(13, "10703050601070305060107030506010703050601070305060");
+Banor.Add(14, "77000774400744407444004440044407444074447744077000");
+Banor.Add(15, "50006350603360036050600056000536050336003506050006");
+Banor.Add(16, "41000006704070540705080700807040705407050067041000");
+Banor.Add(17, "56666600006066560006566066000660666660005660055666");
+Banor.Add(18, "60100010031063010263020340203410253105300100350100");
+
+
+
 Random rand = new Random();
 
 Vector2 ball_velocity = new Vector2((float)(rand.NextDouble()-.5), 1);
@@ -10,7 +33,6 @@ float ball_speed = ball_speed_base;
 float ball_acceleration = (float)0.1; // ball_speed / ball_acceleration måste vara möjligt.
 float actual_ball_speed = 1; // Ändra inte den här!
 int ball_color_a = 255;
-
 
 // rör inte
 int screen_tick_length = 0;
@@ -45,6 +67,7 @@ Texture2D right_button = Raylib.LoadTexture("Assets/Buttons/Right.png");
 right_button.width = (int)(right_button.width / 1.5f);
 right_button.height = (int)(right_button.height / 1.5f);
 
+
 List<Texture2D> levels_preview_texture = new List<Texture2D>();
 foreach (int index in Enumerable.Range(0, Directory.GetFiles("Assets/Buttons/Levels").Length)) {
     Texture2D texture = Raylib.LoadTexture($"Assets/Buttons/Levels/Level {index+1}.png");
@@ -71,8 +94,8 @@ int blocks_gap = 12;
 Vector2 block_size = new Vector2((float)(screen_size.X/11-blocks_gap), ((screen_size.X / 11 - blocks_gap) / 150) * 60); // Blockens res är 150x60.
 
 void randomize_block_map() {
-    for (int y = 0; y < 5; y++) {
-        for (int x = 0; x < 10; x++) {
+    for (int x = 0; x < 10; x++) {
+        for (int y = 0; y < 5; y++) {
             if (rand.Next(0, 101) <= 50) { // Andra värdet är block som spawnar, i
                 // Add block
                 Block block = new Block();
@@ -80,6 +103,30 @@ void randomize_block_map() {
                 blocks.Add(block);
                 amount_of_blocks_left++;
             }
+        }
+    }
+}
+void load_blocks_map(string block_data) {
+    int index = 0;
+    for (int x = 0; x < 10; x++) {
+        for (int y = 0; y < 5; y++) {
+                int texture_idx = 0;
+                if (block_data.ToCharArray().Length < index) {continue;} // in case the map string is too short
+                // texture_idx = (int)block_data[index];
+                // Console.WriteLine(block_data.Split()[index]);
+
+                texture_idx = Int16.Parse(block_data[index].ToString());
+                Console.WriteLine(texture_idx);
+                // texture_idx = ((int)texture_idx);
+                // Console.WriteLine(Int16.Parse((texture_idx.ToString())));
+
+            if (texture_idx > 0) {
+                Block block = new Block();
+                block.init_block(new Vector2((((block_size.X + blocks_gap)*x)+block_size.X/2)+blocks_gap, (((block_size.Y + blocks_gap) * y)+blocks_gap)), block_texturer[texture_idx-1]);
+                blocks.Add(block);
+                amount_of_blocks_left++;
+            }
+            index++;
         }
     }
 }
@@ -214,32 +261,41 @@ void main_menu() {
 
 
     // logic
-    if (Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT)) {
+    if (Raylib.IsMouseButtonReleased(MouseButton.MOUSE_BUTTON_LEFT)) {
         if (Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(),  start_button_rect) && !campaign_menu_open) {
             // start button pressed
             Console.WriteLine("Startar");
-            game_active = true;
-            health.Clear();
-            powerups.Clear();
-            blocks.Clear();
-            health.Add(Raylib.LoadTexture("Assets/Lifebar/life2.png"));
-            health.Add(Raylib.LoadTexture("Assets/Lifebar/life1.png"));
-            health.Add(Raylib.LoadTexture("Assets/Lifebar/life0.png"));
-            randomize_block_map();
-            ball.X = screen_size.X/2;
-            ball.Y = screen_size.Y/2;
-            ball_velocity = new Vector2((float)(rand.NextDouble()-.5), 1);
-            actual_ball_speed = 1;
-            ball_color_a = 255;
-            ball_speed = ball_speed_base; // !! ball speeds need rework
-            screen_tick_length = 120;
-            platta.init_platta();
+            restart_game();
         } else if (Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(), campaign_button_rect) && !campaign_menu_open) {
             // open campaign menu
             campaign_menu_open = true;
             campaign_menu_page = 0;
         }
     }
+}
+
+void restart_game(string map = "") {
+    health.Clear();
+    powerups.Clear();
+    blocks.Clear();
+    if (map == "") {
+        randomize_block_map();
+    } else {
+        load_blocks_map(map);
+    }
+    health.Add(Raylib.LoadTexture("Assets/Lifebar/life2.png"));
+    health.Add(Raylib.LoadTexture("Assets/Lifebar/life1.png"));
+    health.Add(Raylib.LoadTexture("Assets/Lifebar/life0.png"));
+    ball.X = screen_size.X/2;
+    ball.Y = screen_size.Y/2;
+    ball_velocity = new Vector2((float)(rand.NextDouble()-.5), 1);
+    actual_ball_speed = 1;
+    ball_color_a = 255;
+    ball_speed = ball_speed_base; // !! ball speeds need rework
+    screen_tick_length = 120;
+    platta.init_platta();
+    game_active = true;
+
 }
 
 
@@ -286,18 +342,31 @@ void draw_campaign_menu(int page = 0) {
 
 
     // draw level previews
+    Dictionary<int, Rectangle> rendered_campaign_buttons = new();
+    // List<Rectangle> rendered_campaign_buttons = new List<Rectangle>();
     int index = 0;
     int start_index = campaign_menu_page*9;
     foreach (int y in Enumerable.Range(0, 3)) {
         foreach (int x in Enumerable.Range(0, 3)) {
+            Rectangle rect = new Rectangle((bg_rect.x*3.35f)+((bg_rect.width/4)*x), (bg_rect.y*3.6f)+((bg_rect.height/4)*y), bg_rect.width/4.2f, (float)bg_rect.height/4.5f);
             Raylib.DrawTexturePro(
                 levels_preview_texture[index+start_index],
                 get_texture_rect(levels_preview_texture[index+start_index]),
-                new Rectangle((bg_rect.x*3.35f)+((bg_rect.width/4)*x), (bg_rect.y*3.6f)+((bg_rect.height/4)*y), bg_rect.width/4.2f, (float)bg_rect.height/4.5f),
+                rect,
                 new Vector2(0, 0),
                 0, Color.WHITE
             );
+            rendered_campaign_buttons.Add(index+start_index+1, rect);
             index++;
+        }
+    }
+
+
+    // Checking clicked campaign buttons
+    if (Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT)) {
+        foreach (int key in rendered_campaign_buttons.Keys) {
+            if (!Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(), rendered_campaign_buttons[key])) {continue;}
+            restart_game(Banor[key]);
         }
     }
 }
@@ -366,7 +435,7 @@ void check_to_pick_up_powerup() {
             platta.decrease_platta_size();
         } else if (powerup.name == "speed down") {
             ball_speed -= 2;
-            if (ball_speed < 1) {ball_speed = 1;} // så inte bollen kan råka åka baklänges hehe
+            if (ball_speed < 2) {ball_speed = 2;} // så inte bollen kan råka åka baklänges hehe
         } else if (powerup.name == "speed up") {
             ball_speed += 2;
         } else {
@@ -543,6 +612,5 @@ class Block {
         texture = textur;
         is_alive = true;
         rect = new Rectangle(position.X, position.Y, block_size.X, block_size.Y);
-        Console.WriteLine(textur);
     }
 }
