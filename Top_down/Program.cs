@@ -21,10 +21,38 @@ Dictionary<int, string> Banor = new Dictionary<int, string>
     {15, "50006350603360036050600056000536050336003506050006"},
     {16, "41000006704070540705080700807040705407050067041000"},
     {17, "56666600006066560006566066000660666660005660055666"},
-    {18, "60100010031063010263020340203410253105300100350100"},
-
+    {18, "60100010031063010263020340203410253105300100350100"}
+};
+Dictionary<int, string> hardness = new Dictionary<int, string>
+{
+    {1, "00000000000000000000000000000000000000000000000000"},
+    {2, "00000000001000101010001000010001010100010000000000"},
+    {3, "01010100010101000000000000000000000010101000101010"},
+    {4, "00000000000000000000000000000000000000000000000000"},
+    {5, "00000000010001000100010000100000100000100000100000"},
+    {6, "00000000000000000000000000000000000000000000000000"},
+    {7, "00000000000000000000000000000000000000000000000000"},
+    {8, "00000000000000000000000000000000000000000000000000"},
+    {9, "00000000000110010010010010100110010011000000000000"},
+    {10, "00111000010000100011000000000000011000010000100111"},
+    {11, "00100001000101001010100011000101010010100010000100"},
+    {12, "00000000000000000000000000000001110110110111000000"},
+    {13, "00100000101000101000001000001010001010000010000010"},
+    {14, "00000000000000000000000000000000000000000000000000"},
+    {15, "00000000000010001010100011000101010001000000000000"},
+    {16, "00000000101000110001010100101010001100010001000000"},
+    {17, "01111000000011100001000010000110111010000010000011"},
+    {18, "10100010011011010011000010000110011101100100110100"}
 };
 
+// Dictionary<string, object> test = new Dictionary<string, object>();
+// test.Add("1", new Dictionary<string, string>("blabla", "blabla"));
+
+// Dictionary<string, object> dict = new Dictionary<string, object>
+//     {
+//         {"1", new List}
+//         // {"1", {"bla", "bla"}}
+//     };
 
 
 Random rand = new Random();
@@ -82,6 +110,7 @@ foreach (string path in Directory.GetFiles("Assets/Blocks/")) {
     if (path.Contains("Hardness")) {continue;}
     block_texturer.Add(Raylib.LoadTexture(path));
 }
+Texture2D hardness_texture = Raylib.LoadTexture("Assets/Blocks/Hardness 1.png");
 
 List<Powerup> powerups = new List<Powerup>();
 
@@ -109,23 +138,19 @@ void randomize_block_map() {
         }
     }
 }
-void load_blocks_map(string block_data) {
+void load_blocks_map(string block_data, string hardness_data) {
     int index = 0;
     for (int x = 0; x < 10; x++) {
         for (int y = 0; y < 5; y++) {
-                int texture_idx = 0;
-                if (block_data.ToCharArray().Length < index) {continue;} // in case the map string is too short
-                // texture_idx = (int)block_data[index];
-                // Console.WriteLine(block_data.Split()[index]);
+            int texture_idx = 0;
+            if (block_data.ToCharArray().Length < index) {continue;} // in case the map string is too short
 
-                texture_idx = Int16.Parse(block_data[index].ToString());
-                Console.WriteLine(texture_idx);
-                // texture_idx = ((int)texture_idx);
-                // Console.WriteLine(Int16.Parse((texture_idx.ToString())));
+            texture_idx = Int16.Parse(block_data[index].ToString());
 
             if (texture_idx > 0) {
                 Block block = new Block();
                 block.init_block(new Vector2((((block_size.X + blocks_gap)*x)+block_size.X/2)+blocks_gap, (((block_size.Y + blocks_gap) * y)+blocks_gap)), block_texturer[texture_idx-1]);
+                if (Int16.Parse(hardness_data[index].ToString()) == 1) {block.hardness = true;}
                 blocks.Add(block);
                 amount_of_blocks_left++;
             }
@@ -179,7 +204,11 @@ while (!Raylib.WindowShouldClose()) {
         foreach (Block block in blocks) {
             if (!Raylib.CheckCollisionCircleRec(ball, bollBild.width/2, block.rect)) {continue;}
             if (!block.is_alive) {continue;}
-            block.is_alive = false;
+            if (block.hardness) {
+                block.hardness = false;
+            } else {
+                block.is_alive = false;
+            }
             amount_of_blocks_left--;
 
             bounce_ball_on_block(block);
@@ -277,14 +306,14 @@ void main_menu() {
     }
 }
 
-void restart_game(string map = "") {
+void restart_game(string map = "", string hardness_map = "") {
     health.Clear();
     powerups.Clear();
     blocks.Clear();
     if (map == "") {
         randomize_block_map();
     } else {
-        load_blocks_map(map);
+        load_blocks_map(map, hardness_map);
     }
     health.Add(Raylib.LoadTexture("Assets/Lifebar/life2.png"));
     health.Add(Raylib.LoadTexture("Assets/Lifebar/life1.png"));
@@ -369,7 +398,7 @@ void draw_campaign_menu(int page = 0) {
     if (Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT)) {
         foreach (int key in rendered_campaign_buttons.Keys) {
             if (!Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(), rendered_campaign_buttons[key])) {continue;}
-            restart_game(Banor[key]);
+            restart_game(Banor[key], hardness[key]);
         }
     }
 }
@@ -457,7 +486,7 @@ Rectangle get_texture_rect(Texture2D texture) {return new Rectangle(0, 0, textur
 void draw_game() {
     // Drawing
     Raylib.BeginDrawing();
-    Raylib.ClearBackground(Color.DARKGRAY);
+    Raylib.ClearBackground(new Color(40, 40, 40, 255));
 
     foreach (Block block in blocks) { // Ritar alla block
         Texture2D block_textur = block_texturer[rand.Next(0, block_texturer.Count)];
@@ -465,6 +494,10 @@ void draw_game() {
         // Raylib.DrawRectangleRec(block, Color.WHITE);
         if (block.is_alive) {
             Raylib.DrawTexturePro(block.texture, new Rectangle(0, 0, block_textur.width, block_textur.height), block.rect, new Vector2(0, 0), 0, Color.WHITE);
+            if (block.hardness) {
+                Rectangle hardness_rect = new Rectangle(block.rect.x-5, block.rect.y-5, block.rect.width+10, block.rect.height+10);
+                Raylib.DrawTexturePro(hardness_texture, new Rectangle(0, 0, hardness_texture.width, hardness_texture.height), hardness_rect, new Vector2(0, 0), 0, Color.WHITE);
+            }
         }
         // Raylib.DrawText(index.ToString(), (int)block.x, (int)block.y, 32, Color.WHITE);
     }
@@ -608,6 +641,7 @@ class Block {
     public bool is_alive;
     public Texture2D texture;
     public Rectangle rect;
+    public bool hardness = false;
 
     public void init_block(Vector2 pos, Texture2D textur) {
         block_size = new Vector2((float)(Raylib.GetScreenWidth()/11-blocks_gap), ((Raylib.GetScreenWidth() / 11 - blocks_gap) / 150) * 60); // Blockens res är 150x60.
