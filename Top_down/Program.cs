@@ -208,8 +208,8 @@ while (!Raylib.WindowShouldClose()) {
                 block.hardness = false;
             } else {
                 block.is_alive = false;
+                amount_of_blocks_left--;
             }
-            amount_of_blocks_left--;
 
             bounce_ball_on_block(block);
 
