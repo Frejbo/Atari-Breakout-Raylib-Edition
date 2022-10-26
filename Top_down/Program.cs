@@ -187,12 +187,14 @@ while (!Raylib.WindowShouldClose()) {
 
         platta.tick_platta_size();
 
+        bool rerun_loop = false;
         foreach (Ball ball in balls) {
             if (!ball.is_alive) {continue;}
             ball.tick();
             // studsa på kanter och hörn
-            if (!bounce_ball(ball)) {continue;}
+            if (!bounce_ball(ball)) {rerun_loop = true; continue;}
         }
+        if (rerun_loop) {continue;}
 
         foreach (Ball ball in balls) {
             if (!ball.is_alive) {continue;}
@@ -215,6 +217,9 @@ while (!Raylib.WindowShouldClose()) {
                     string[] alla_powerups = Directory.GetFiles("Assets/Powerups/");
                     powerup.name = alla_powerups[rand.Next(0, alla_powerups.Length)].Replace("Assets/Powerups/", "").Replace(".png", "");
                     powerup.texture = Raylib.LoadTexture($"Assets/Powerups/{powerup.name}.png");
+                    // powerup.size måste ändras 
+                    float width_ratio = (float)powerup.texture.width/powerup.texture.height;
+                    powerup.size.X = powerup.size.X * width_ratio;
                     powerups.Add(powerup);
                 }
             }
@@ -224,11 +229,15 @@ while (!Raylib.WindowShouldClose()) {
             amount_of_balls++;
             add_amount_of_new_balls--;
         }
+        balls.Reverse();
+        for (int i = balls.Count-1; i>0; i--) {
+            if (!balls[i].is_alive) {balls.RemoveAt(i);}
+        }
+        balls.Reverse();
 
         foreach (Powerup powerup in powerups) {powerup.position.Y += powerup.speed;}
         
         check_to_pick_up_powerup();
-        
 
         draw_game();
     }
@@ -424,15 +433,15 @@ bool bounce_ball(Ball ball) {
             health.RemoveAt(0);
             if (health.Count == 0) {return (false);}
             // balls.Add(new Ball());
-            // add_amount_of_new_balls++;
-            amount_of_balls++;
-            ball.is_alive = true;
-            ball.ball_color_a = 255;
-            ball.position.X = platta.position.X+(platta.width/2);
-            ball.position.Y = screen_size.Y/2;
-            ball.velocity = new Vector2((float)(rand.NextDouble()-.5), 1);
-            ball.actual_ball_speed = 1;
-            ball.speed = 5;
+            add_amount_of_new_balls++;
+            // amount_of_balls++;
+            // ball.is_alive = true;
+            // ball.ball_color_a = 255;
+            // ball.position.X = platta.position.X+(platta.width/2);
+            // ball.position.Y = screen_size.Y/2;
+            // ball.velocity = new Vector2((float)(rand.NextDouble()-.5), 1);
+            // ball.actual_ball_speed = 1;
+            // ball.speed = 5;
         }
     } else if (Raylib.CheckCollisionCircleRec(ball.position, bollBild.width/2, platta.rect)) { // träffar platta
         if (ball.position.Y > platta.position.Y-(bollBild.height/2)) {
@@ -526,9 +535,8 @@ void draw_game() {
         get_texture_rect(platta.texture),
         platta.rect,
         new Vector2(0, 0),
-        0, Color.WHITE
+        0, platta.color_tint
     );
-    // Raylib.DrawTexture(platta.texture, (int)platta.position.X, (int)platta.position.Y, platta.color_tint);
 
     foreach (Ball ball in balls) {
         if (!ball.is_alive) {continue;}
@@ -555,7 +563,7 @@ class Powerup {
     public Vector2 position;
     public Texture2D texture;
     public int speed = 2;
-    public Vector2 size = new Vector2(40, 40);
+    public Vector2 size = new Vector2(30, 30);
     public string name = "";
 }
 
@@ -614,14 +622,14 @@ class Platta {
             }
         }
         if (Raylib.IsKeyDown(KeyboardKey.KEY_D) || Raylib.IsKeyDown(KeyboardKey.KEY_RIGHT)) {
-            if (position.X + ((int)texture.width*1.5) >= Raylib.GetScreenWidth()) {
-                position.X = Raylib.GetScreenWidth() - (int)(texture.width*1.5);
+            if (position.X + ((int)texture.width) >= Raylib.GetScreenWidth()) {
+                position.X = Raylib.GetScreenWidth() - (int)(texture.width);
             } else {
                 position.X += speed;
             }
         }
         width = texture.width*(int)1.5; // Plattan är 1.5x större än dens textur... borde göra om plattan till rätt res men orkar inte
-        height = texture.height*(int)1.5; 
+        height = texture.height*(int)1.5;
         rect = new Rectangle(position.X, position.Y, width, height);
 
         if (size_change_timer > 0) {size_change_timer -= 1;}
