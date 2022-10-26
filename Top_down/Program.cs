@@ -508,11 +508,10 @@ void draw_game() {
         Raylib.DrawTexturePro(powerup.texture, source_size, dest_size, new Vector2(0,0), 0, Color.WHITE);
     }
 
-
     Raylib.DrawTexturePro(
         platta.texture,
         get_texture_rect(platta.texture),
-        new Rectangle(platta.position.X, platta.position.Y, (int)(platta.width*1.5), (int)(platta.height*1.5)),
+        platta.rect,
         new Vector2(0, 0),
         0, Color.WHITE
     );
@@ -605,10 +604,9 @@ class Platta {
                 position.X += speed;
             }
         }
-        rect = new Rectangle(position.X, position.Y, texture.width, texture.height);
-        width = texture.width;
-        height = texture.height;
-
+        width = texture.width*(int)1.5; // Plattan är 1.5x större än dens textur... borde göra om plattan till rätt res men orkar inte
+        height = texture.height*(int)1.5; 
+        rect = new Rectangle(position.X, position.Y, width, height);
 
         if (size_change_timer > 0) {size_change_timer -= 1;}
 
