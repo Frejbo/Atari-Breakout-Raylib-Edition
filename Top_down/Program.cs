@@ -55,9 +55,8 @@ Dictionary<int, string> hardness = new Dictionary<int, string>
 //     };
 
 
+
 Random rand = new Random();
-
-
 
 // rör inte
 int screen_tick_length = 0;
@@ -76,17 +75,17 @@ Texture2D bg = Raylib.LoadTexture("Assets/Backgrounds/Meny.png");
 Texture2D death_taggar = Raylib.LoadTexture("Assets/Death.png");
 
 Texture2D start_button_texture = Raylib.LoadTexture("Assets/Buttons/Starta knapp.png");
-start_button_texture.width = start_button_texture.width / 4;
-start_button_texture.height = start_button_texture.height / 4;
+start_button_texture.width /= 4;
+start_button_texture.height /= 4;
 Texture2D campaign_button_texture = Raylib.LoadTexture("Assets/Buttons/Campaign knapp.png");
-campaign_button_texture.width = campaign_button_texture.width / 4;
-campaign_button_texture.height = campaign_button_texture.height / 4;
+campaign_button_texture.width /= 4;
+campaign_button_texture.height /= 4;
 Texture2D campaign_menu_bg = Raylib.LoadTexture("Assets/Buttons/Campaign menu.png");
 Texture2D campaign_back_button = Raylib.LoadTexture("Assets/Buttons/Back knapp.png");
-campaign_back_button.width = campaign_back_button.width / 4;
-campaign_back_button.height = campaign_back_button.height / 4;
+campaign_back_button.width /= 4;
+campaign_back_button.height /= 4;
 Texture2D left_button = Raylib.LoadTexture("Assets/Buttons/Left.png");
-left_button.width = (int)(left_button.width / 1.5f);
+left_button.width /= (int)(left_button.width / 1.5f);
 left_button.height = (int)(left_button.height / 1.5f);
 Texture2D right_button = Raylib.LoadTexture("Assets/Buttons/Right.png");
 right_button.width = (int)(right_button.width / 1.5f);
@@ -99,18 +98,17 @@ foreach (int index in Enumerable.Range(0, Directory.GetFiles("Assets/Buttons/Lev
     levels_preview_texture.Add(texture);
 }
 
+Texture2D hardness_texture = Raylib.LoadTexture("Assets/Blocks/Hardness 1.png");
 List<Texture2D> block_texturer = new List<Texture2D>();
 foreach (string path in Directory.GetFiles("Assets/Blocks/")) {
     if (path.Contains("Hardness")) {continue;}
     block_texturer.Add(Raylib.LoadTexture(path));
 }
-Texture2D hardness_texture = Raylib.LoadTexture("Assets/Blocks/Hardness 1.png");
 
 List<Powerup> powerups = new List<Powerup>();
-
 List<Texture2D> health = new List<Texture2D>();
-
 List<Ball> balls = new List<Ball>();
+
 int amount_of_balls = 0;
 int add_amount_of_new_balls = 0;
 
@@ -175,7 +173,6 @@ while (!Raylib.WindowShouldClose()) {
         continue;
     } else if (amount_of_blocks_left <= 0) {
         // vinner
-        // game_active = false;
         success();
         continue;
     }
@@ -216,8 +213,7 @@ while (!Raylib.WindowShouldClose()) {
                     powerup.position = new Vector2(block.position.X, block.position.Y);
                     string[] alla_powerups = Directory.GetFiles("Assets/Powerups/");
                     powerup.name = alla_powerups[rand.Next(0, alla_powerups.Length)].Replace("Assets/Powerups/", "").Replace(".png", "");
-                    powerup.texture = Raylib.LoadTexture($"Assets/Powerups/{powerup.name}.png");
-                    // powerup.size måste ändras 
+                    powerup.texture = Raylib.LoadTexture($"Assets/Powerups/{powerup.name}.png"); 
                     float width_ratio = (float)powerup.texture.width/powerup.texture.height;
                     powerup.size.X = powerup.size.X * width_ratio;
                     powerups.Add(powerup);
@@ -335,6 +331,10 @@ void restart_game(string map = "", string hardness_map = "") {
 
 
 void draw_campaign_menu(int page = 0) {
+    Color left_arrow_color = Color.WHITE;
+    Color right_arrow_color = Color.WHITE;
+
+
     // Raylib is already drawing.
     float difference = (Raylib.GetScreenHeight()/10)*9 / (float)campaign_menu_bg.height; // covers 9/10 of screen height
     Rectangle bg_rect = new Rectangle((Raylib.GetScreenWidth()/2)-((campaign_menu_bg.width*difference)/2), (Raylib.GetScreenHeight()/2)-((campaign_menu_bg.height*difference)/2), campaign_menu_bg.width*difference, campaign_menu_bg.height*difference);
@@ -350,20 +350,35 @@ void draw_campaign_menu(int page = 0) {
         campaign_menu_open = false;
     }
 
-    // draw left/right button
     Rectangle left_button_rect = new Rectangle((Raylib.GetScreenWidth()/2)-(left_button.width*1.5f), Raylib.GetScreenHeight()-bg_rect.y-(left_button.height*1.2f), left_button.width, left_button.height);
+    Rectangle right_button_rect = new Rectangle((Raylib.GetScreenWidth()/2)+(right_button.width*.5f), Raylib.GetScreenHeight()-bg_rect.y-(right_button.height*1.2f), right_button.width, right_button.height);
+    // check arrow color
+    if (Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(), left_button_rect)) {
+        // hovrar över vänster pil
+        left_arrow_color = new Color(200, 200, 200, 255);
+        if (Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_LEFT)) {
+            left_arrow_color = new Color(150, 150, 150, 255);
+        }
+    }
+    if (Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(), right_button_rect)) {
+        // hovrar över höger pil
+        right_arrow_color = new Color(200, 200, 200, 255);
+        if (Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_LEFT)) {
+            right_arrow_color = new Color(150, 150, 150, 255);
+        }
+    }
+    // draw left/right button
     Raylib.DrawTexturePro(
         left_button, get_texture_rect(left_button),
         left_button_rect,
         new Vector2(0, 0),
-        0, Color.WHITE
+        0, left_arrow_color
     );
-    Rectangle right_button_rect = new Rectangle((Raylib.GetScreenWidth()/2)+(right_button.width*.5f), Raylib.GetScreenHeight()-bg_rect.y-(right_button.height*1.2f), right_button.width, right_button.height);
     Raylib.DrawTexturePro(
         right_button, get_texture_rect(right_button),
         right_button_rect,
         new Vector2(0, 0),
-        0, Color.WHITE
+        0, right_arrow_color
     );
     // check arrows clicked
     if (Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT) && Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(), left_button_rect)) {
@@ -423,7 +438,6 @@ bool bounce_ball(Ball ball) {
     } else if (ball.position.Y > (screen_size.Y - bollBild.height/2)) { // hits bottom
         ball.is_alive = false;
         amount_of_balls--;
-        // remove_balls.Add(ball);
         // bool balls_exist = false;
         // foreach (Ball boll_som_kanske_inte_lever in balls) {
         //     if (boll_som_kanske_inte_lever.is_alive) {balls_exist = true;}
@@ -432,16 +446,7 @@ bool bounce_ball(Ball ball) {
         if (amount_of_balls == 0) { // Ta endast bort hälsa ifall 0 bollar är kvar.
             health.RemoveAt(0);
             if (health.Count == 0) {return (false);}
-            // balls.Add(new Ball());
             add_amount_of_new_balls++;
-            // amount_of_balls++;
-            // ball.is_alive = true;
-            // ball.ball_color_a = 255;
-            // ball.position.X = platta.position.X+(platta.width/2);
-            // ball.position.Y = screen_size.Y/2;
-            // ball.velocity = new Vector2((float)(rand.NextDouble()-.5), 1);
-            // ball.actual_ball_speed = 1;
-            // ball.speed = 5;
         }
     } else if (Raylib.CheckCollisionCircleRec(ball.position, bollBild.width/2, platta.rect)) { // träffar platta
         if (ball.position.Y > platta.position.Y-(bollBild.height/2)) {
@@ -490,7 +495,9 @@ void check_to_pick_up_powerup() {
         } else if (powerup.name == "speed up") {
             foreach (Ball ball in balls) {ball.speed += 2;}
         } else if (powerup.name == "+1 ball") {
-            balls.Add(new Ball());
+            Ball ball = new Ball();
+            ball.set_position_to_platta(platta);
+            balls.Add(ball);
             amount_of_balls++;
         } else {
             System.Console.WriteLine($"Tog upp {powerup.name}, men den fungerar inte i nuläget.");
@@ -692,5 +699,9 @@ class Ball {
         // accelerera om bollhastigheten är under den angivna
         if (actual_ball_speed < speed) {actual_ball_speed += ball_acceleration;}
         if (actual_ball_speed > speed) {actual_ball_speed = speed;}
+    }
+    
+    public void set_position_to_platta(Platta platta) {
+        position = new Vector2(platta.position.X+platta.width/2, Raylib.GetScreenHeight()/2);
     }
 }
