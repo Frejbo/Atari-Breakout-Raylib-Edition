@@ -1,5 +1,6 @@
 ﻿using Raylib_cs;
 using System.Numerics;
+using Partikel;
 
 
 Dictionary<int, string> Banor = new Dictionary<int, string>
@@ -44,15 +45,6 @@ Dictionary<int, string> hardness = new Dictionary<int, string>
     {17, "01111000000011100001000010000110111010000010000011"},
     {18, "10100010011011010011000010000110011101100100110100"}
 };
-
-// Dictionary<string, object> test = new Dictionary<string, object>();
-// test.Add("1", new Dictionary<string, string>("blabla", "blabla"));
-
-// Dictionary<string, object> dict = new Dictionary<string, object>
-//     {
-//         {"1", new List}
-//         // {"1", {"bla", "bla"}}
-//     };
 
 
 
@@ -162,6 +154,8 @@ bool bounced_y = false;
 
 bool game_active = false;
 
+List<Particle> partiklar = new();
+
 while (!Raylib.WindowShouldClose()) {
     if (!game_active) {
         main_menu();
@@ -202,6 +196,16 @@ while (!Raylib.WindowShouldClose()) {
                     block.hardness = false;
                 } else {
                     block.is_alive = false;
+                    Particle partikel = new Particle();
+                    System.Console.WriteLine(block.rect);
+                    System.Console.WriteLine(block.position);
+                    System.Console.WriteLine(block.texture.width);
+                    partikel.position = new Vector2(block.position.X+(block.rect.width/2), block.position.Y+(block.rect.height/2));
+                    // (color1 + color2) * .5; 
+                    
+                    partikel.color = Color.WHITE; // fixa färg för blocket
+                    partikel.init_particle();
+                    partiklar.Add(partikel);
                     amount_of_blocks_left--;
                 }
 
@@ -234,8 +238,15 @@ while (!Raylib.WindowShouldClose()) {
         foreach (Powerup powerup in powerups) {powerup.position.Y += powerup.speed;}
         
         check_to_pick_up_powerup();
-
         draw_game();
+
+        // kollar om partiklar kan tas bort
+        List<Particle> temp_copy = partiklar;
+        foreach (Particle particle in temp_copy) {
+            if (!particle.is_emitting) {
+                partiklar.Remove(particle);
+            }
+        }
     }
 }
 
@@ -516,6 +527,8 @@ void draw_game() {
     // Drawing
     Raylib.BeginDrawing();
     Raylib.ClearBackground(new Color(40, 40, 40, 255));
+
+    foreach (Particle particle in partiklar) { particle.update_particle(); } // ritar alla partiklar
 
     foreach (Block block in blocks) { // Ritar alla block
         Texture2D block_textur = block_texturer[rand.Next(0, block_texturer.Count)];
