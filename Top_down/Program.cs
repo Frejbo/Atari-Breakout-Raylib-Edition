@@ -92,6 +92,7 @@ foreach (int index in Enumerable.Range(0, Directory.GetFiles("Assets/Buttons/Lev
 
 Texture2D hardness_texture = Raylib.LoadTexture("Assets/Blocks/Hardness 1.png");
 List<Texture2D> block_texturer = new List<Texture2D>();
+List<Color> block_color_list = new() {new Color(35, 215, 219, 255), new Color(209, 35, 219, 255), new Color(105, 219, 35, 255), new Color(219, 212, 35, 255), new Color(219, 57, 35, 255), new Color(35, 64, 219, 255), new Color(219, 134, 35, 255), new Color(96, 56, 41, 255)};
 foreach (string path in Directory.GetFiles("Assets/Blocks/")) {
     if (path.Contains("Hardness")) {continue;}
     block_texturer.Add(Raylib.LoadTexture(path));
@@ -117,7 +118,9 @@ void randomize_block_map() {
             if (rand.Next(0, 101) <= 50) { // Andra värdet är block som spawnar, i
                 // Add block
                 Block block = new Block();
-                block.init_block(new Vector2((((block_size.X + blocks_gap)*x)+block_size.X/2)+blocks_gap, (((block_size.Y + blocks_gap) * y)+blocks_gap)), block_texturer[rand.Next(0, block_texturer.Count)]);
+                int i = rand.Next(0, block_texturer.Count);
+                block.init_block(new Vector2((((block_size.X + blocks_gap)*x)+block_size.X/2)+blocks_gap, (((block_size.Y + blocks_gap) * y)+blocks_gap)), block_texturer[i]);
+                block.particle_color = block_color_list[i];
                 blocks.Add(block);
                 amount_of_blocks_left++;
             }
@@ -136,6 +139,7 @@ void load_blocks_map(string block_data, string hardness_data) {
             if (texture_idx > 0) {
                 Block block = new Block();
                 block.init_block(new Vector2((((block_size.X + blocks_gap)*x)+block_size.X/2)+blocks_gap, (((block_size.Y + blocks_gap) * y)+blocks_gap)), block_texturer[texture_idx-1]);
+                block.particle_color = block_color_list[texture_idx-1];
                 if (Int16.Parse(hardness_data[index].ToString()) == 1) {block.hardness = true;}
                 blocks.Add(block);
                 amount_of_blocks_left++;
@@ -197,13 +201,10 @@ while (!Raylib.WindowShouldClose()) {
                 } else {
                     block.is_alive = false;
                     Particle partikel = new Particle();
-                    System.Console.WriteLine(block.rect);
-                    System.Console.WriteLine(block.position);
-                    System.Console.WriteLine(block.texture.width);
                     partikel.position = new Vector2(block.position.X+(block.rect.width/2), block.position.Y+(block.rect.height/2));
-                    // (color1 + color2) * .5; 
                     
-                    partikel.color = Color.WHITE; // fixa färg för blocket
+
+                    partikel.color = block.particle_color; // fixa färg för blocket
                     partikel.init_particle();
                     partiklar.Add(partikel);
                     amount_of_blocks_left--;
@@ -684,6 +685,7 @@ class Block {
     public Texture2D texture;
     public Rectangle rect;
     public bool hardness = false;
+    public Color particle_color;
 
     public void init_block(Vector2 pos, Texture2D textur) {
         block_size = new Vector2((float)(Raylib.GetScreenWidth()/11-blocks_gap), ((Raylib.GetScreenWidth() / 11 - blocks_gap) / 150) * 60); // Blockens res är 150x60.
@@ -691,6 +693,8 @@ class Block {
         texture = textur;
         is_alive = true;
         rect = new Rectangle(position.X, position.Y, block_size.X, block_size.Y);
+
+        // particle_color = 
     }
 }
 
