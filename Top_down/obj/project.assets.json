@@ -128,11 +128,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Frej\\Documents\\Programmering\\Atari Breakout\\Top_down\\Top_down.csproj",
+      "projectUniqueName": "C:\\Users\\Frej\\Documents\\GitHub\\Skola\\Top_down\\Top_down\\Top_down.csproj",
       "projectName": "Top_down",
-      "projectPath": "C:\\Users\\Frej\\Documents\\Programmering\\Atari Breakout\\Top_down\\Top_down.csproj",
+      "projectPath": "C:\\Users\\Frej\\Documents\\GitHub\\Skola\\Top_down\\Top_down\\Top_down.csproj",
       "packagesPath": "C:\\Users\\Frej\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Frej\\Documents\\Programmering\\Atari Breakout\\Top_down\\obj\\",
+      "outputPath": "C:\\Users\\Frej\\Documents\\GitHub\\Skola\\Top_down\\Top_down\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Frej\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -180,7 +180,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.400\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.401\\RuntimeIdentifierGraph.json"
       }
     }
   }
