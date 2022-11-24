@@ -198,13 +198,16 @@ while (!Raylib.WindowShouldClose()) {
                 if (!block.is_alive) {continue;}
                 if (block.hardness) {
                     block.hardness = false;
+                    Particle partikel = new Particle();
+                    partikel.position = new Vector2(block.position.X+(block.rect.width/2), block.position.Y+(block.rect.height/2));
+                    partikel.color = new Color(61, 61, 69, 255); // color of hardness
+                    partikel.init_particle();
+                    partiklar.Add(partikel);
                 } else {
                     block.is_alive = false;
                     Particle partikel = new Particle();
                     partikel.position = new Vector2(block.position.X+(block.rect.width/2), block.position.Y+(block.rect.height/2));
-                    
-
-                    partikel.color = block.particle_color; // fixa färg för blocket
+                    partikel.color = block.particle_color;
                     partikel.init_particle();
                     partiklar.Add(partikel);
                     amount_of_blocks_left--;
