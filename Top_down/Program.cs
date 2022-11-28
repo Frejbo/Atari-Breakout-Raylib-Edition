@@ -176,20 +176,20 @@ while (!Raylib.WindowShouldClose()) {
     }
 
     if (game_active) {
-        // play
+        // spelet är igång, menyn visas alltså inte.
         bounced_x = false;
         bounced_y = false;
 
         platta.tick_platta_size();
 
-        bool rerun_loop = false;
+        bool restart_loop = false;
         foreach (Ball ball in balls) {
             if (!ball.is_alive) {continue;}
             ball.tick();
             // studsa på kanter och hörn
-            if (!bounce_ball(ball)) {rerun_loop = true; continue;}
+            if (!bounce_ball(ball)) {restart_loop = true; continue;}
         }
-        if (rerun_loop) {continue;}
+        if (restart_loop) {continue;}
 
         foreach (Ball ball in balls) {
             if (!ball.is_alive) {continue;}
@@ -266,6 +266,7 @@ void game_over() {
         game_active = false;
     }
 }
+
 void success() {
     Raylib.BeginDrawing();
     Raylib.ClearBackground(Color.DARKGRAY);
@@ -408,7 +409,6 @@ void draw_campaign_menu(int page = 0) {
 
     // draw level previews
     Dictionary<int, Rectangle> rendered_campaign_buttons = new();
-    // List<Rectangle> rendered_campaign_buttons = new List<Rectangle>();
     int index = 0;
     int start_index = campaign_menu_page*9;
     foreach (int y in Enumerable.Range(0, 3)) {
@@ -453,11 +453,6 @@ bool bounce_ball(Ball ball) {
     } else if (ball.position.Y > (screen_size.Y - bollBild.height/2)) { // hits bottom
         ball.is_alive = false;
         amount_of_balls--;
-        // bool balls_exist = false;
-        // foreach (Ball boll_som_kanske_inte_lever in balls) {
-        //     if (boll_som_kanske_inte_lever.is_alive) {balls_exist = true;}
-        //     Console.WriteLine(boll_som_kanske_inte_lever.is_alive);
-        // }
         if (amount_of_balls == 0) { // Ta endast bort hälsa ifall 0 bollar är kvar.
             health.RemoveAt(0);
             if (health.Count == 0) {return (false);}
@@ -532,20 +527,10 @@ void draw_game() {
     Raylib.BeginDrawing();
     Raylib.ClearBackground(new Color(40, 40, 40, 255));
 
-    foreach (Particle particle in partiklar) { particle.update_particle(); } // ritar alla partiklar
+    foreach (Particle particle in partiklar) { particle.update_draw_particle(); } // ritar alla partiklar
 
     foreach (Block block in blocks) { // Ritar alla block
-        Texture2D block_textur = block_texturer[rand.Next(0, block_texturer.Count)];
-
-        // Raylib.DrawRectangleRec(block, Color.WHITE);
-        if (block.is_alive) {
-            Raylib.DrawTexturePro(block.texture, new Rectangle(0, 0, block_textur.width, block_textur.height), block.rect, new Vector2(0, 0), 0, Color.WHITE);
-            if (block.hardness) {
-                Rectangle hardness_rect = new Rectangle(block.rect.x-5, block.rect.y-5, block.rect.width+10, block.rect.height+10);
-                Raylib.DrawTexturePro(hardness_texture, new Rectangle(0, 0, hardness_texture.width, hardness_texture.height), hardness_rect, new Vector2(0, 0), 0, Color.WHITE);
-            }
-        }
-        // Raylib.DrawText(index.ToString(), (int)block.x, (int)block.y, 32, Color.WHITE);
+        block.draw();
     }
 
     foreach (Powerup powerup in powerups) {

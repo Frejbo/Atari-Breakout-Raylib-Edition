@@ -1,5 +1,6 @@
 using System.Numerics;
 using Raylib_cs;
+using textures;
 
 namespace Objects {
     class Block {
@@ -21,6 +22,16 @@ namespace Objects {
             rect = new Rectangle(position.X, position.Y, block_size.X, block_size.Y);
 
             // particle_color = 
+        }
+        public void draw() {
+            if (!is_alive) { return; }
+            Raylib.DrawTexturePro(texture, new Rectangle(0, 0, texture.width, texture.height), rect, new Vector2(0, 0), 0, Color.WHITE);
+            if (hardness) {
+                textures.Texturer texturer = new textures.Texturer();
+                Texture2D hardness_texture = texturer.hardness;
+                Rectangle hardness_rect = new Rectangle(rect.x-5, rect.y-5, rect.width+10, rect.height+10);
+                Raylib.DrawTexturePro(hardness_texture, new Rectangle(0, 0, hardness_texture.width, hardness_texture.height), hardness_rect, new Vector2(0, 0), 0, Color.WHITE);
+            }
         }
     }
 
@@ -180,7 +191,7 @@ namespace Objects {
         }
         
         // only call update_particle inside Raylib drawing!
-        public void update_particle() {
+        public void update_draw_particle() {
             int index = 0;
             // Skapar en temporär kopia som kan loopas över, eftersom C# inte tillåter att ändra värden som loopas
             List<ParticleDot> temp_copy = new();
