@@ -6,7 +6,7 @@ namespace Objects {
     class Block {
         public float blocks_gap = 12f;
         Vector2 block_size;
-
+        static Texture2D hardness_texture = new textures.Texturer().hardness;
         public Vector2 position;
         public bool is_alive;
         public Texture2D texture;
@@ -27,8 +27,6 @@ namespace Objects {
             if (!is_alive) { return; }
             Raylib.DrawTexturePro(texture, new Rectangle(0, 0, texture.width, texture.height), rect, new Vector2(0, 0), 0, Color.WHITE);
             if (hardness) {
-                textures.Texturer texturer = new textures.Texturer();
-                Texture2D hardness_texture = texturer.hardness;
                 Rectangle hardness_rect = new Rectangle(rect.x-5, rect.y-5, rect.width+10, rect.height+10);
                 Raylib.DrawTexturePro(hardness_texture, new Rectangle(0, 0, hardness_texture.width, hardness_texture.height), hardness_rect, new Vector2(0, 0), 0, Color.WHITE);
             }
@@ -68,9 +66,9 @@ namespace Objects {
         public int size = 1;
         public float size_change_timer = 0f;
         public Color color_tint;
-        Texture2D short_platta = Raylib.LoadTexture("Assets/Short Plate.png");
-        Texture2D medium_platta = Raylib.LoadTexture("Assets/Medium Plate.png");
-        Texture2D long_platta = Raylib.LoadTexture("Assets/Long Plate.png");
+        static Texture2D short_platta = Raylib.LoadTexture("Assets/Short Plate.png");
+        static Texture2D medium_platta = Raylib.LoadTexture("Assets/Medium Plate.png");
+        static Texture2D long_platta = Raylib.LoadTexture("Assets/Long Plate.png");
         public Vector2 position;
         public Rectangle rect;
         public int width;
@@ -159,6 +157,11 @@ namespace Objects {
         public int speed = 2;
         public Vector2 size = new Vector2(30, 30);
         public string name = "";
+        public void draw() {
+            Rectangle source_size = new Rectangle(0, 0, texture.width, texture.height);
+            Rectangle dest_size = new Rectangle(position.X, position.Y, size.X, size.Y);
+            Raylib.DrawTexturePro(texture, source_size, dest_size, new Vector2(0,0), 0, Color.WHITE);
+        }
     }
 
 

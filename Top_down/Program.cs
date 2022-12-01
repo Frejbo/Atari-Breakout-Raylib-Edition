@@ -1,50 +1,7 @@
 ﻿using Raylib_cs;
 using System.Numerics;
 using Objects;
-
-
-Dictionary<int, string> Banor = new Dictionary<int, string>
-{
-    {1, "00000300063000630006300063000630006300063000600000"},
-    {2, "30303060605000505050005000050005050500050606030303"},
-    {3, "01010106010131003030304033040303030013101060101010"},
-    {4, "00000044444000041050404054040541050400000444400000"},
-    {5, "61010001016101000107610756107500107610100010161010"},
-    {6, "00016003100430054000500005000054000043000031000016"},
-    {7, "08830388800088308380388300880038880008830388000380"},
-    {8, "84000444000444000440004440044400440044400440088000"},
-    {9, "36631622632552657752257752577557752255266226336631"},
-    {10, "63636305065300530056000000000030056530053050663636"},
-    {11, "00600006000606006260625266252606260060600060000600"},
-    {12, "00000030000300003300003000030002220224220222000000"},
-    {13, "10703050601070305060107030506010703050601070305060"},
-    {14, "77000774400744407444004440044407444074447744077000"},
-    {15, "50006350603360036050600056000536050336003506050006"},
-    {16, "41000006704070540705080700807040705407050067041000"},
-    {17, "56666600006066560006566066000660666660005660055666"},
-    {18, "60100010031063010263020340203410253105300100350100"}
-};
-Dictionary<int, string> hardness = new Dictionary<int, string>
-{
-    {1, "00000000000000000000000000000000000000000000000000"},
-    {2, "00000000001000101010001000010001010100010000000000"},
-    {3, "01010100010101000000000000000000000010101000101010"},
-    {4, "00000000000000000000000000000000000000000000000000"},
-    {5, "00000000010001000100010000100000100000100000100000"},
-    {6, "00000000000000000000000000000000000000000000000000"},
-    {7, "00000000000000000000000000000000000000000000000000"},
-    {8, "00000000000000000000000000000000000000000000000000"},
-    {9, "00000000000110010010010010100110010011000000000000"},
-    {10, "00111000010000100011000000000000011000010000100111"},
-    {11, "00100001000101001010100011000101010010100010000100"},
-    {12, "00000000000000000000000000000001110110110111000000"},
-    {13, "00100000101000101000001000001010001010000010000010"},
-    {14, "00000000000000000000000000000000000000000000000000"},
-    {15, "00000000000010001010100011000101010001000000000000"},
-    {16, "00000000101000110001010100101010001100010001000000"},
-    {17, "01111000000011100001000010000110111010000010000011"},
-    {18, "10100010011011010011000010000110011101100100110100"}
-};
+using GameMaps;
 
 
 
@@ -90,7 +47,7 @@ foreach (int index in Enumerable.Range(0, Directory.GetFiles("Assets/Buttons/Lev
     levels_preview_texture.Add(texture);
 }
 
-Texture2D hardness_texture = Raylib.LoadTexture("Assets/Blocks/Hardness 1.png");
+Texture2D hardness_texture = new textures.Texturer().hardness;
 List<Texture2D> block_texturer = new List<Texture2D>();
 List<Color> block_color_list = new() {new Color(35, 215, 219, 255), new Color(209, 35, 219, 255), new Color(105, 219, 35, 255), new Color(219, 212, 35, 255), new Color(219, 57, 35, 255), new Color(35, 64, 219, 255), new Color(219, 134, 35, 255), new Color(96, 56, 41, 255)};
 foreach (string path in Directory.GetFiles("Assets/Blocks/")) {
@@ -99,7 +56,8 @@ foreach (string path in Directory.GetFiles("Assets/Blocks/")) {
 }
 
 List<Powerup> powerups = new List<Powerup>();
-List<Texture2D> health = new List<Texture2D>();
+List<Texture2D> health_textures = new textures.Texturer().full_health;
+int health = health_textures.Count;
 List<Ball> balls = new List<Ball>();
 
 int amount_of_balls = 0;
@@ -166,7 +124,7 @@ while (!Raylib.WindowShouldClose()) {
         continue;
     }
 
-    if (health.Count <= 0) {
+    if (health <= 0) {
         game_over();
         continue;
     } else if (amount_of_blocks_left <= 0) {
@@ -221,7 +179,7 @@ while (!Raylib.WindowShouldClose()) {
                     powerup.position = new Vector2(block.position.X, block.position.Y);
                     string[] alla_powerups = Directory.GetFiles("Assets/Powerups/");
                     powerup.name = alla_powerups[rand.Next(0, alla_powerups.Length)].Replace("Assets/Powerups/", "").Replace(".png", "");
-                    powerup.texture = Raylib.LoadTexture($"Assets/Powerups/{powerup.name}.png"); 
+                    powerup.texture = Raylib.LoadTexture($"Assets/Powerups/{powerup.name}.png");
                     float width_ratio = (float)powerup.texture.width/powerup.texture.height;
                     powerup.size.X = powerup.size.X * width_ratio;
                     powerups.Add(powerup);
@@ -326,7 +284,6 @@ void main_menu() {
 }
 
 void restart_game(string map = "", string hardness_map = "") {
-    health.Clear();
     powerups.Clear();
     blocks.Clear();
     balls.Clear();
@@ -335,10 +292,8 @@ void restart_game(string map = "", string hardness_map = "") {
     } else {
         load_blocks_map(map, hardness_map);
     }
-    health.Add(Raylib.LoadTexture("Assets/Lifebar/life2.png"));
-    health.Add(Raylib.LoadTexture("Assets/Lifebar/life1.png"));
-    health.Add(Raylib.LoadTexture("Assets/Lifebar/life0.png"));
     balls.Add(new Ball());
+    health = health_textures.Count;
     amount_of_balls++;
     screen_tick_length = 120;
     platta.init_platta();
@@ -431,7 +386,9 @@ void draw_campaign_menu(int page = 0) {
     if (Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT)) {
         foreach (int key in rendered_campaign_buttons.Keys) {
             if (!Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(), rendered_campaign_buttons[key])) {continue;}
-            restart_game(Banor[key], hardness[key]);
+            string bana = new GameMaps.GameMaps().Banor[key];
+            string hardness = new GameMaps.GameMaps().hardness[key];
+            restart_game(bana, hardness);
         }
     }
 }
@@ -454,8 +411,8 @@ bool bounce_ball(Ball ball) {
         ball.is_alive = false;
         amount_of_balls--;
         if (amount_of_balls == 0) { // Ta endast bort hälsa ifall 0 bollar är kvar.
-            health.RemoveAt(0);
-            if (health.Count == 0) {return (false);}
+            health--;
+            if (health == 0) {return (false);}
             add_amount_of_new_balls++;
         }
     } else if (Raylib.CheckCollisionCircleRec(ball.position, bollBild.width/2, platta.rect)) { // träffar platta
@@ -534,9 +491,7 @@ void draw_game() {
     }
 
     foreach (Powerup powerup in powerups) {
-        Rectangle source_size = new Rectangle(0, 0, powerup.texture.width, powerup.texture.height);
-        Rectangle dest_size = new Rectangle(powerup.position.X, powerup.position.Y, powerup.size.X, powerup.size.Y);
-        Raylib.DrawTexturePro(powerup.texture, source_size, dest_size, new Vector2(0,0), 0, Color.WHITE);
+        powerup.draw();
     }
 
     Raylib.DrawTexturePro(
@@ -551,8 +506,7 @@ void draw_game() {
         if (!ball.is_alive) {continue;}
         Raylib.DrawTexture(bollBild, (int)ball.position.X-bollBild.width/2, (int)ball.position.Y-bollBild.height/2, new Color(255, 255, 255, ball.ball_color_a));
     }
-
-    Raylib.DrawTexture(health[0], ((int)screen_size.X - health[0].width) - 20, 20, new Color(255, 255, 255, 200));
+    Raylib.DrawTexture(health_textures[health_textures.Count - health], ((int)screen_size.X - health_textures[health_textures.Count - health].width) - 20, 20, new Color(255, 255, 255, 200));
 
     float difference = Raylib.GetScreenWidth() / (float)death_taggar.width;
     Raylib.DrawTexturePro(
