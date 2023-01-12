@@ -2,7 +2,7 @@
 using System.Numerics;
 using Objects;
 using GameMaps;
-
+using Partikel;
 
 
 Random rand = new Random();
@@ -73,7 +73,7 @@ Vector2 block_size = new Vector2((float)(screen_size.X/11-blocks_gap), ((screen_
 void randomize_block_map() {
     for (int x = 0; x < 10; x++) {
         for (int y = 0; y < 5; y++) {
-            if (rand.Next(0, 101) <= 50) { // Andra värdet är block som spawnar, i
+            if (rand.Next(0, 101) <= 50) { // Andra värdet är block som spawnar, i procent
                 // Add block
                 Block block = new Block();
                 int i = rand.Next(0, block_texturer.Count);
@@ -116,9 +116,10 @@ bool bounced_y = false;
 
 bool game_active = false;
 
-List<Particle> partiklar = new();
+List<Partikel.Particle> partiklar = new();
 
 while (!Raylib.WindowShouldClose()) {
+
     if (!game_active) {
         main_menu();
         continue;
