@@ -8,13 +8,13 @@ namespace Partikel {
         public Vector2 position;
         public bool is_emitting = true;
         List<ParticleDot> dots = new();
-        public void init_particle() {
+        public void Initialize() {
             for (int degree = 0; degree < 360; degree += 360/number_of_points) {
                 ParticleDot dot = new ParticleDot();
                 Random rand = new Random();
                 dot.initial_velocity = (float)rand.NextDouble()*2+1;
                 dot.dot_radius = rand.Next(2, 10);
-                dot.set_base_color(color);
+                dot.SetBaseColor(color);
 
                 double radian = (Math.PI / 180) * degree;
 
@@ -39,7 +39,7 @@ namespace Partikel {
             
             foreach (ParticleDot dot in temp_copy) {
                 // change position
-                dot.tick_velocity();
+                dot.TickVelocity();
                 if (dot.color.a <= 4) {
                     dots.Remove(dot);
                 }
@@ -61,7 +61,7 @@ namespace Partikel {
         Random rand = new Random();
         float GRAVITY = .03f;
 
-        public void set_base_color(Color base_color) {
+        public void SetBaseColor(Color base_color) {
             int tint_range = 25;
 
             color.r = tint_value(base_color.r);
@@ -78,7 +78,7 @@ namespace Partikel {
             }
         }
 
-        public void tick_velocity() {
+        public void TickVelocity() {
             float multiplier = 1-(rand.Next(1, 5)*.01f);
             velocity.X *= multiplier;
             velocity.Y *= multiplier;

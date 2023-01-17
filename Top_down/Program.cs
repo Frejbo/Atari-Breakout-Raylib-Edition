@@ -70,14 +70,14 @@ int amount_of_blocks_left = 0;
 int blocks_gap = 12;
 Vector2 block_size = new Vector2((float)(screen_size.X/11-blocks_gap), ((screen_size.X / 11 - blocks_gap) / 150) * 60); // Blockens res är 150x60.
 
-void randomize_block_map() {
+void RandomizeBlockMap() {
     for (int x = 0; x < 10; x++) {
         for (int y = 0; y < 5; y++) {
             if (rand.Next(0, 101) <= 50) { // Andra värdet är block som spawnar, i procent
                 // Add block
                 Block block = new Block();
                 int i = rand.Next(0, block_texturer.Count);
-                block.init_block(new Vector2((((block_size.X + blocks_gap)*x)+block_size.X/2)+blocks_gap, (((block_size.Y + blocks_gap) * y)+blocks_gap)), block_texturer[i]);
+                block.Initialize(new Vector2((((block_size.X + blocks_gap)*x)+block_size.X/2)+blocks_gap, (((block_size.Y + blocks_gap) * y)+blocks_gap)), block_texturer[i]);
                 block.particle_color = block_color_list[i];
                 blocks.Add(block);
                 amount_of_blocks_left++;
@@ -85,7 +85,7 @@ void randomize_block_map() {
         }
     }
 }
-void load_blocks_map(string block_data, string hardness_data) {
+void LoadBlocksMap(string block_data, string hardness_data) {
     int index = 0;
     for (int x = 0; x < 10; x++) {
         for (int y = 0; y < 5; y++) {
@@ -96,7 +96,7 @@ void load_blocks_map(string block_data, string hardness_data) {
 
             if (texture_idx > 0) {
                 Block block = new Block();
-                block.init_block(new Vector2((((block_size.X + blocks_gap)*x)+block_size.X/2)+blocks_gap, (((block_size.Y + blocks_gap) * y)+blocks_gap)), block_texturer[texture_idx-1]);
+                block.Initialize(new Vector2((((block_size.X + blocks_gap)*x)+block_size.X/2)+blocks_gap, (((block_size.Y + blocks_gap) * y)+blocks_gap)), block_texturer[texture_idx-1]);
                 block.particle_color = block_color_list[texture_idx-1];
                 if (Int16.Parse(hardness_data[index].ToString()) == 1) {block.hardness = true;}
                 blocks.Add(block);
@@ -108,7 +108,7 @@ void load_blocks_map(string block_data, string hardness_data) {
 }
 
 Platta platta = new Platta();
-platta.init_platta();
+platta.Initialize();
 platta.speed = 10;
 
 bool bounced_x = false;
@@ -121,16 +121,16 @@ List<Partikel.Particle> partiklar = new();
 while (!Raylib.WindowShouldClose()) {
 
     if (!game_active) {
-        main_menu();
+        MainMenu();
         continue;
     }
 
     if (health <= 0) {
-        game_over();
+        GameOver();
         continue;
     } else if (amount_of_blocks_left <= 0) {
         // vinner
-        success();
+        Success();
         continue;
     }
 
@@ -139,14 +139,14 @@ while (!Raylib.WindowShouldClose()) {
         bounced_x = false;
         bounced_y = false;
 
-        platta.tick_platta_size();
+        platta.TickPlattaSize();
 
         bool restart_loop = false;
         foreach (Ball ball in balls) {
             if (!ball.is_alive) {continue;}
-            ball.tick();
+            ball.Tick();
             // studsa på kanter och hörn
-            if (!bounce_ball(ball)) {restart_loop = true; continue;}
+            if (!BounceBall(ball)) {restart_loop = true; continue;}
         }
         if (restart_loop) {continue;}
 
@@ -160,19 +160,19 @@ while (!Raylib.WindowShouldClose()) {
                     Particle partikel = new Particle();
                     partikel.position = new Vector2(block.position.X+(block.rect.width/2), block.position.Y+(block.rect.height/2));
                     partikel.color = new Color(61, 61, 69, 255); // color of hardness
-                    partikel.init_particle();
+                    partikel.Initialize();
                     partiklar.Add(partikel);
                 } else {
                     block.is_alive = false;
                     Particle partikel = new Particle();
                     partikel.position = new Vector2(block.position.X+(block.rect.width/2), block.position.Y+(block.rect.height/2));
                     partikel.color = block.particle_color;
-                    partikel.init_particle();
+                    partikel.Initialize();
                     partiklar.Add(partikel);
                     amount_of_blocks_left--;
                 }
 
-                bounce_ball_on_block(block, ball);
+                BounceBallOnBlock(block, ball);
 
                 // Spawn powerups
                 if (rand.Next(0, 101) <= 33) { // second argument: percentage of blocks that spawn powerups.
@@ -200,8 +200,8 @@ while (!Raylib.WindowShouldClose()) {
 
         foreach (Powerup powerup in powerups) {powerup.position.Y += powerup.speed;}
         
-        check_to_pick_up_powerup();
-        draw_game();
+        CheckToPickUpPowerup();
+        DrawGame();
 
         // kollar om partiklar kan tas bort
         List<Particle> temp_copy = partiklar;
@@ -213,7 +213,7 @@ while (!Raylib.WindowShouldClose()) {
     }
 }
 
-void game_over() {
+void GameOver() {
     Raylib.BeginDrawing();
     Raylib.ClearBackground(Color.DARKGRAY);
 
@@ -226,7 +226,7 @@ void game_over() {
     }
 }
 
-void success() {
+void Success() {
     Raylib.BeginDrawing();
     Raylib.ClearBackground(Color.DARKGRAY);
 
@@ -242,7 +242,7 @@ void success() {
 
 
 
-void main_menu() {
+void MainMenu() {
     Raylib.BeginDrawing();
     
     Rectangle dest = new Rectangle(0, 0, Raylib.GetScreenWidth(), Raylib.GetScreenHeight());
@@ -265,7 +265,7 @@ void main_menu() {
         0, Color.WHITE
     );
 
-    if (campaign_menu_open) {draw_campaign_menu(campaign_menu_page);}
+    if (campaign_menu_open) {DrawCampaignMenu(campaign_menu_page);}
 
     Raylib.EndDrawing();
 
@@ -275,7 +275,7 @@ void main_menu() {
         if (Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(),  start_button_rect) && !campaign_menu_open) {
             // start button pressed
             Console.WriteLine("Startar");
-            restart_game();
+            RestartGame();
         } else if (Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(), campaign_button_rect) && !campaign_menu_open) {
             // open campaign menu
             campaign_menu_open = true;
@@ -284,25 +284,25 @@ void main_menu() {
     }
 }
 
-void restart_game(string map = "", string hardness_map = "") {
+void RestartGame(string map = "", string hardness_map = "") {
     powerups.Clear();
     blocks.Clear();
     balls.Clear();
     if (map == "") {
-        randomize_block_map();
+        RandomizeBlockMap();
     } else {
-        load_blocks_map(map, hardness_map);
+        LoadBlocksMap(map, hardness_map);
     }
     balls.Add(new Ball());
     health = health_textures.Count;
     amount_of_balls++;
     screen_tick_length = 120;
-    platta.init_platta();
+    platta.Initialize();
     game_active = true;
 }
 
 
-void draw_campaign_menu(int page = 0) {
+void DrawCampaignMenu(int page = 0) {
     Color left_arrow_color = Color.WHITE;
     Color right_arrow_color = Color.WHITE;
 
@@ -389,13 +389,13 @@ void draw_campaign_menu(int page = 0) {
             if (!Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(), rendered_campaign_buttons[key])) {continue;}
             string bana = new GameMaps.GameMaps().Banor[key];
             string hardness = new GameMaps.GameMaps().hardness[key];
-            restart_game(bana, hardness);
+            RestartGame(bana, hardness);
         }
     }
 }
 
 
-bool bounce_ball(Ball ball) {
+bool BounceBall(Ball ball) {
     if (ball.position.Y > platta.position.Y) {
         // minska bollens alpha när den faller under plattan
         ball.ball_color_a-=10;
@@ -426,7 +426,7 @@ bool bounce_ball(Ball ball) {
     return (true);
 }
 
-void bounce_ball_on_block(Block block, Ball ball) {
+void BounceBallOnBlock(Block block, Ball ball) {
     Rectangle over_check = new Rectangle(block.position.X+(bollBild.width/4), block.position.Y-bollBild.height, block.rect.width-(bollBild.width/2), 1);
     Rectangle below_check = new Rectangle(block.position.X+(bollBild.width/4), block.position.Y+block.rect.height+bollBild.height, block.rect.width-(bollBild.width/2), 1);
     if (Raylib.CheckCollisionCircleRec(ball.position, bollBild.height, over_check)) { // Bollen är över blocket
@@ -445,16 +445,16 @@ void bounce_ball_on_block(Block block, Ball ball) {
     ball.speed += 0.1f;
 }
 
-void check_to_pick_up_powerup() {
+void CheckToPickUpPowerup() {
     // Checking if powerup should be taken
     List<Powerup> remove_powerups = new List<Powerup>();
     foreach (Powerup powerup in powerups) {
         if (!Raylib.CheckCollisionRecs(new Rectangle(powerup.position.X, powerup.position.Y, powerup.size.X, powerup.size.Y), platta.rect)) {continue;}
         // Om powerupen ska aktiveras & tas bort:
         if (powerup.name == "Longer Plate") {
-            platta.increase_platta_size();
+            platta.IncreasePlattaSize();
         } else if (powerup.name == "Shorter Plate") {
-            platta.decrease_platta_size();
+            platta.DecreasePlattaSize();
         } else if (powerup.name == "speed down") {
             foreach (Ball ball in balls) {
                 ball.speed -= 2;
@@ -464,7 +464,7 @@ void check_to_pick_up_powerup() {
             foreach (Ball ball in balls) {ball.speed += 2;}
         } else if (powerup.name == "+1 ball") {
             Ball ball = new Ball();
-            ball.set_position_to_platta(platta);
+            ball.SetPositionToPlatta(platta);
             balls.Add(ball);
             amount_of_balls++;
         } else {
@@ -480,7 +480,7 @@ void check_to_pick_up_powerup() {
 Rectangle get_texture_rect(Texture2D texture) {return new Rectangle(0, 0, texture.width, texture.height);}
 
 
-void draw_game() {
+void DrawGame() {
     // Drawing
     Raylib.BeginDrawing();
     Raylib.ClearBackground(new Color(40, 40, 40, 255));
@@ -488,11 +488,11 @@ void draw_game() {
     foreach (Particle particle in partiklar) { particle.UpdateDrawParticle(); } // ritar alla partiklar
 
     foreach (Block block in blocks) { // Ritar alla block
-        block.draw();
+        block.Draw();
     }
 
     foreach (Powerup powerup in powerups) {
-        powerup.draw();
+        powerup.Draw();
     }
 
     Raylib.DrawTexturePro(

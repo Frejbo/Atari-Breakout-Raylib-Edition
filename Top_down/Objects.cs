@@ -14,14 +14,14 @@ namespace Objects {
         public bool hardness = false;
         public Color particle_color;
 
-        public void init_block(Vector2 pos, Texture2D textur) {
+        public void Initialize(Vector2 pos, Texture2D textur) {
             block_size = new Vector2((float)(Raylib.GetScreenWidth()/11-blocks_gap), ((Raylib.GetScreenWidth() / 11 - blocks_gap) / 150) * 60); // Blockens res är 150x60.
             position = pos;
             texture = textur;
             is_alive = true;
             rect = new Rectangle(position.X, position.Y, block_size.X, block_size.Y);
         }
-        public void draw() {
+        public void Draw() {
             if (!is_alive) { return; }
             Raylib.DrawTexturePro(texture, new Rectangle(0, 0, texture.width, texture.height), rect, new Vector2(0, 0), 0, Color.WHITE);
             if (hardness) {
@@ -43,7 +43,7 @@ namespace Objects {
         float ball_acceleration = 0.1f;
 
 
-        public void tick() {
+        public void Tick() {
             // calculating direction of ball
             position.X += velocity.X * actual_ball_speed;
             position.Y += velocity.Y * actual_ball_speed;
@@ -53,7 +53,7 @@ namespace Objects {
             if (actual_ball_speed > speed) {actual_ball_speed = speed;}
         }
         
-        public void set_position_to_platta(Platta platta) {
+        public void SetPositionToPlatta(Platta platta) {
             position = new Vector2(platta.position.X+platta.width/2, Raylib.GetScreenHeight()/2);
         }
     }
@@ -73,17 +73,17 @@ namespace Objects {
         public int height;
         public Texture2D texture;
 
-        public void increase_platta_size() {
+        public void IncreasePlattaSize() {
             size += 1;
             size_change_timer += 60*10; // En powerup varar i 10 sekunder
         }
-        public void decrease_platta_size() {
+        public void DecreasePlattaSize() {
             if (size == 1) {
             }
             size -= 1;
             size_change_timer += 60*10; // En powerup varar i 10 sekunder
         }
-        public void tick_platta_size() {
+        public void TickPlattaSize() {
             if (size > 1) {
                 if (texture.width == medium_platta.width) {
                     position.X -= (long_platta.width-medium_platta.width)/2;
@@ -138,7 +138,7 @@ namespace Objects {
                 color_tint = Color.WHITE;
             }
         }
-        public void init_platta() {
+        public void Initialize() {
             texture = medium_platta;
             size = 1;
             color_tint = Color.WHITE;
@@ -154,7 +154,7 @@ namespace Objects {
         public int speed = 2;
         public Vector2 size = new Vector2(30, 30);
         public string name = "";
-        public void draw() {
+        public void Draw() {
             Rectangle source_size = new Rectangle(0, 0, texture.width, texture.height);
             Rectangle dest_size = new Rectangle(position.X, position.Y, size.X, size.Y);
             Raylib.DrawTexturePro(texture, source_size, dest_size, new Vector2(0,0), 0, Color.WHITE);
