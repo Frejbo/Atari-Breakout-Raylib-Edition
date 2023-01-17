@@ -485,7 +485,7 @@ void draw_game() {
     Raylib.BeginDrawing();
     Raylib.ClearBackground(new Color(40, 40, 40, 255));
 
-    foreach (Particle particle in partiklar) { particle.update_draw_particle(); } // ritar alla partiklar
+    foreach (Particle particle in partiklar) { particle.UpdateDrawParticle(); } // ritar alla partiklar
 
     foreach (Block block in blocks) { // Ritar alla block
         block.draw();

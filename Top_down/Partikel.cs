@@ -5,9 +5,8 @@ namespace Partikel {
     class Particle {
         int number_of_points = 32;
         public Color color = Color.RED;
-        public bool is_emitting = true;
         public Vector2 position;
-
+        public bool is_emitting = true;
         List<ParticleDot> dots = new();
         public void init_particle() {
             for (int degree = 0; degree < 360; degree += 360/number_of_points) {
@@ -30,7 +29,7 @@ namespace Partikel {
         }
         
         // only call update_particle inside Raylib drawing!
-        public void update_draw_particle() {
+        public void UpdateDrawParticle() {
             int index = 0;
             // Skapar en temporär kopia som kan loopas över, eftersom C# inte tillåter att ändra värden som loopas
             List<ParticleDot> temp_copy = new();
